@@ -19,7 +19,7 @@ The skill is immediately available as `/llm-wiki` in any Claude Code session.
 ## Pin to a version
 
 ```bash
-git -C ~/.claude/skills/llm-wiki checkout v1.0.0
+git -C ~/.claude/skills/llm-wiki checkout v0.1.0
 ```
 
 ## Update to latest
@@ -31,5 +31,5 @@ git -C ~/.claude/skills/llm-wiki pull
 ## Rollback
 
 ```bash
-git -C ~/.claude/skills/llm-wiki checkout v1.0.0
+git -C ~/.claude/skills/llm-wiki checkout v0.1.0
 ```
