@@ -11,7 +11,7 @@ For full behavior documentation, see [SKILL.md](SKILL.md).
 Clone directly into your Claude Code personal skills directory:
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/wiki ~/.claude/skills/llm-wiki
+git clone https://github.com/dougcallaway/wiki ~/.claude/skills/llm-wiki
 ```
 
 The skill is immediately available as `/llm-wiki` in any Claude Code session.
