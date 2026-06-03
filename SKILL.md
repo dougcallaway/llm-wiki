@@ -135,6 +135,11 @@ Child/member pages add: `parent` — the single area or project they belong to
 
 ## Domain-specific notes
 <Any conventions specific to this domain, e.g. "pages for characters use type: entity and include an 'appears_in' field".>
+
+## Backup
+<!-- omit this section if no backup is configured -->
+Pattern: <binaries-only | full-repo | rclone-only>
+Command: rclone sync <source-path> <remote>:<destination-path>
 ```
 
 Also create `<root>/wiki/resources/index.md` as the controlled topic-tag vocabulary (namespaces like `technology/`, `vendor/`, `process/`, `team/` — define what fits the domain; avoid a catch-all), and `<root>/wiki/projects/`, `areas/`, `resources/` directories.
@@ -167,6 +172,16 @@ Domain: <domain>
 Create `<root>/wiki/overview.md` as a brief placeholder.
 
 Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to enable git version control for this wiki? It gives you per-file rollback and full history. See **Optional tooling: Git** for what this entails."* If yes, follow the setup steps in the Optional tooling: Git section.
+
+Then ask about cloud backup: *"Do you want to back up this wiki to cloud storage via rclone? Options: (1) binaries only — rclone covers `capture/`, git covers `wiki/`, push `wiki/` to a remote like GitHub; (2) full repo — rclone syncs everything including `.git/`, no GitHub needed (good for single-user wikis); (3) rclone only — no git, rclone is your only backup. Or skip for now."*
+
+If the user chooses a pattern, ask for the rclone remote name and destination path, then add a `## Backup` section to `CLAUDE.md`:
+```
+## Backup
+Pattern: <binaries-only | full-repo | rclone-only>
+Command: rclone sync <source-path> <remote>:<destination-path>
+```
+For **binaries-only**, `<source-path>` is `<wiki-root>/capture/`. For **full-repo** and **rclone-only**, it is `<wiki-root>/`. If the user skips backup setup, omit the `## Backup` section entirely.
 
 ---
 
@@ -737,7 +752,7 @@ The `--exclude ".git/**"` flag is a safety net in case a `.git/` directory exist
 
 **`sync` vs. `copy`:** `rclone sync` mirrors the source — it adds new files and removes files deleted locally. Use `rclone copy` instead if you want the destination to only grow (never delete).
 
-**Claude's role:** Claude does not run rclone automatically. After an organize, distill, or express pass, Claude may remind the user to sync. Skip this reminder if the user has automated the sync. When rclone is the only backup mechanism (no git), Claude skips git commit suggestions entirely.
+**Claude's role:** Claude does not run rclone automatically. If `CLAUDE.md` contains a `## Backup` section, use the exact command recorded there for sync reminders. After an organize, distill, or express pass, Claude may remind the user to sync. Skip this reminder if the user has automated the sync. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.
 
 ---
 
