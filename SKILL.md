@@ -171,11 +171,11 @@ Domain: <domain>
 
 Create `<root>/wiki/overview.md` as a brief placeholder.
 
-Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to enable git version control for this wiki? It gives you per-file rollback and full history. See **Optional tooling: Git** for what this entails."* If yes, follow the setup steps in the Optional tooling: Git section.
+Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to enable git version control for this wiki? It gives you per-file rollback and full history."* If yes, read `setup-git.md` and follow its setup steps.
 
 Then ask about cloud backup: *"Do you want to back up this wiki to cloud storage via rclone? Options: (1) binaries only — rclone covers `capture/`, git covers `wiki/`, push `wiki/` to a remote like GitHub; (2) full repo — rclone syncs everything including `.git/`, no GitHub needed (good for single-user wikis); (3) rclone only — no git, rclone is your only backup. Or skip for now."*
 
-If the user chooses a pattern, ask for the rclone remote name and destination path, then add a `## Backup` section to `CLAUDE.md`:
+If the user chooses a pattern, read `setup-rclone.md`, ask for the rclone remote name and destination path, then add a `## Backup` section to `CLAUDE.md`:
 ```
 ## Backup
 Pattern: <binaries-only | full-repo | rclone-only>
@@ -183,15 +183,7 @@ Command: rclone sync <source-path> <remote>:<destination-path>
 ```
 For **binaries-only**, `<source-path>` is `<wiki-root>/capture/`. For **full-repo** and **rclone-only**, it is `<wiki-root>/`. If the user skips backup setup, omit the `## Backup` section entirely.
 
-If git was set up **and** an rclone pattern was chosen, also create the post-commit hook:
-```bash
-cat > <wiki-root>/.git/hooks/post-commit << 'EOF'
-#!/bin/sh
-command -v rclone >/dev/null 2>&1 && rclone sync <source-path> <remote>:<destination-path>
-EOF
-chmod +x <wiki-root>/.git/hooks/post-commit
-```
-Use the same source/remote/destination from the `## Backup` section. Skip this step for the **rclone-only** pattern (no git, no hook).
+If git was set up **and** an rclone pattern was chosen, also create the post-commit hook (see `setup-rclone.md` for the hook script). Skip this step for the **rclone-only** pattern (no git, no hook).
 
 ---
 
@@ -620,198 +612,21 @@ Deferred: contradiction on learning-rate-schedules (needs human decision)
 
 ---
 
-## Optional tooling: Git
+## Optional tooling
 
-Git gives the wiki per-file diff history and true rollback — the one thing `log.md`
-cannot provide. It's the right choice if you want to see exactly which sentences
-changed in a distill pass, or restore any prior state of the wiki.
+Setup guides live in separate files — load the relevant one on demand, not on every wiki operation:
 
-**Setup:**
+| File | When to load |
+|------|-------------|
+| `setup-git.md` | User asks about git setup, rollback, or commit conventions; or during Init when git is requested |
+| `setup-rclone.md` | User asks about cloud backup or sync; or during Init when a backup pattern is requested |
+| `setup-obsidian.md` | User mentions Obsidian, web clipping, or asks about the clipper workflow |
 
-Only do this if the wiki root is not already inside a parent git repo (nested repos are rarely intended). Then:
-
-```bash
-cd <wiki-root>
-git init
-```
-
-Create `<wiki-root>/.gitignore`:
-```
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Editor
-.obsidian/
-```
-
-Ask the user: *"Do you want to exclude `capture/assets/`? Exclude if you care about repo size; track it if you want the wiki fully self-contained."* Add `capture/assets/` to `.gitignore` if yes.
-
-```bash
-git add .
-git commit -m "init: wiki created"
-```
-
-**Commit convention:** Mirror the `log.md` entry format in commit messages so `git log --oneline` and `log.md` are readable side by side:
-- `organize: <Source Title>`
-- `distill: <Page Title> (level N->N+1)`
-- `express: <Output Title>` (also used when a filed Query answer is committed)
-- `lint: <date> (<N> fixed)`
-
-**Rollback:**
-
-Find the target commit:
-```bash
-git log --oneline
-```
-
-Restore the entire `wiki/` directory:
-```bash
-git checkout <commit-hash> -- wiki/
-git commit -m "rollback: to <commit-hash>"
-```
-
-Restore a single page:
-```bash
-git checkout <commit-hash> -- wiki/concepts/transformer.md
-git commit -m "rollback: transformer to <commit-hash>"
-```
-
-Note: `git checkout <hash> -- <path>` stages the files but does not commit — always follow it with a commit to record the rollback in history.
-
-**Claude's role:** When `.git` exists in the wiki root, Claude suggests a commit after each organize, distill, and express operation and waits for explicit confirmation before running it. Claude never commits without confirmation, and skips all git behavior when no `.git` exists in the wiki root.
-
----
-
-## Optional tooling: rclone
-
-rclone syncs wiki files to cloud storage. It supports 70+ backends: OneDrive, Google Drive, S3, Backblaze B2, Dropbox, and many more.
-
-Three patterns, pick one:
-
-| Pattern | What rclone syncs | When to choose |
-|---------|------------------|----------------|
-| **Complement to git — binaries only** | `capture/` only | git handles `wiki/`; you push to a remote like GitHub; rclone covers the binaries git skips |
-| **Complement to git — full repo** | Entire wiki root including `.git/` | Single-user wiki; you want git history locally without pushing to a remote; rclone is the remote |
-| **Alternative to git** | Entire wiki root (no `.git/`) | No git at all; history via cloud provider's built-in versioning |
-
-**rclone vs. git for `wiki/`:** git gives you per-line diff history, structured commits, and true rollback at any granularity. rclone gives you simpler setup and works for any file type, but rollback depends on what you sync: the full-repo pattern preserves complete git history in the cloud (restore with `rclone sync`; `git log` still works); the alternative-to-git pattern relies on the cloud provider's file versioning (OneDrive, S3, GCS). Use git-as-remote if history matters and you need to access the repo from multiple machines; use rclone-as-remote for a single-user wiki that stays local.
-
-**Install:**
-
-```bash
-# macOS
-brew install rclone
-
-# Debian/Ubuntu
-sudo apt install rclone
-
-# All platforms: see https://rclone.org/install/
-```
-
-**Setup:**
-
-```bash
-rclone config
-```
-
-Follow the interactive prompts for your chosen backend. Name the remote something memorable (e.g. `backup`). Verify access after setup:
-
-```bash
-rclone lsd backup:
-```
-
-**Sync — complement to git, binaries only:**
-
-Add `capture/` to `.gitignore` so the binaries stay out of the git repo:
-
-```
-# Raw capture files — backed up via rclone, not git
-capture/
-```
-
-Then sync only `capture/`:
-
-```bash
-rclone sync <wiki-root>/capture/ backup:wiki-capture/
-```
-
-**Sync — complement to git, full repo (rclone as the remote):**
-
-Sync the entire wiki root including `.git/`. This preserves full git history in the cloud without needing GitHub:
-
-```bash
-rclone sync <wiki-root>/ backup:my-wiki/
-```
-
-To restore on a new machine:
-
-```bash
-rclone sync backup:my-wiki/ <wiki-root>/
-# git log, git checkout, etc. all work — .git/ is intact
-```
-
-**Sync — alternative to git (no git):**
-
-```bash
-rclone sync <wiki-root>/ backup:my-wiki/ --exclude ".git/**"
-```
-
-The `--exclude ".git/**"` flag is a safety net in case a `.git/` directory exists; omit it if the wiki has never used git.
-
-**`sync` vs. `copy`:** `rclone sync` mirrors the source — it adds new files and removes files deleted locally. Use `rclone copy` instead if you want the destination to only grow (never delete).
-
-**Post-commit hook (recommended when using git):**
-
-Wire rclone to git's post-commit hook so every commit automatically triggers a sync — no manual reminders needed:
-
-```bash
-cat > <wiki-root>/.git/hooks/post-commit << 'EOF'
-#!/bin/sh
-command -v rclone >/dev/null 2>&1 && rclone sync <source-path> <remote>:<destination-path>
-EOF
-chmod +x <wiki-root>/.git/hooks/post-commit
-```
-
-Replace `<source-path>`, `<remote>`, and `<destination-path>` with the values from `CLAUDE.md`'s `## Backup` section. The `command -v` guard makes the hook a no-op if rclone is not installed, so it never blocks a commit.
-
-Note: `.git/hooks/` is not tracked by git. If you restore the repo from rclone and need to recreate the hook, re-run the commands above (or ask Claude — the command is in `CLAUDE.md`).
-
-**Claude's role:** Claude does not run rclone automatically. If `.git/hooks/post-commit` exists, skip sync reminders — the hook fires on every commit. If no hook exists but `CLAUDE.md` contains a `## Backup` section, remind the user to sync after each organize, distill, or express pass using the exact command from `CLAUDE.md`. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.
-
----
-
-## Optional tooling: Obsidian
-
-These two Obsidian tools integrate cleanly with the `capture/` workflow and are worth
-setting up if the user is using Obsidian as their wiki viewer.
-
-### Obsidian Web Clipper
-
-A browser extension that converts web articles to markdown with a single click.
-
-**Setup:** Install from [obsidian.md/clipper](https://obsidian.md/clipper). Point it
-at the `capture/` directory as the save location. Clipped articles land there as
-markdown files, ready to organize — no copy-pasting required.
-
-**Claude's role:** When the user says "I clipped something", check `capture/` for new
-files and offer to organize them.
-
-### Download attachments hotkey
-
-Obsidian can download all inline images from a clipped article to a local folder,
-so Claude can read them directly rather than relying on URLs that may break.
-
-**Setup:** In Obsidian Settings → Files and links, set "Attachment folder path" to
-`capture/assets/`. Then in Settings → Hotkeys, search for "Download attachments for
-current file" and bind it to a hotkey (e.g. `Ctrl+Shift+D`). After clipping an
-article, hit the hotkey to pull all images local.
-
-**Claude's role on organize:** When reading a source that has image references pointing
-to `capture/assets/`, read the text first, then view referenced images separately for
-additional context. Note that images can't be read inline with the markdown in one
-pass — treat them as supplementary.
+**Operational reminders (no file load needed):**
+- If `.git` exists: suggest a commit after organize, distill, and express — wait for confirmation
+- If `.git/hooks/post-commit` exists: skip rclone sync reminders — the hook fires automatically
+- If no hook but `CLAUDE.md` has a `## Backup` section: remind the user to sync after each operation using the exact command from `CLAUDE.md`
+- If `rclone-only` pattern (no git): skip git commit suggestions entirely
 
 ---
 
