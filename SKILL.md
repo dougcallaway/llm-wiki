@@ -10,31 +10,7 @@ description: >
 
 # LLM Wiki Skill
 
-A Claude-maintained personal knowledge base. Claude does all the writing and bookkeeping;
-the user does the sourcing and thinking.
-
-## Core idea
-
-This skill combines two frameworks:
-
-**Karpathy's LLM Wiki** — instead of re-deriving answers from raw documents every time
-(RAG), Claude builds and maintains a *persistent wiki*: structured, interlinked markdown
-files that compound over time. Every source integrated updates entity pages, flags
-contradictions, and adds cross-references. Nothing gets lost.
-
-**Forte's CODE method** maps onto four operations:
-
-| CODE step | Operation | What Claude does |
-|-----------|-----------|-----------------|
-| **C**apture | `capture` | Drop ideas/links into `capture/` without processing |
-| **O**rganize | `organize` | Integrate captures into the wiki; tag with PARA |
-| **D**istill | `distill` | Progressively compress pages to their essential insights |
-| **E**xpress | `express` | Produce a finished artifact — draft, report, or decision doc |
-
-Two utility operations sit outside CODE: `query` (retrieve from the wiki) and `lint`
-(health-check the wiki). See the **Utilities** section below.
-
-The user's job: capture, direct, and express. Claude's job: everything else.
+A Claude-maintained personal knowledge base. Claude does all the writing and bookkeeping; the user does the sourcing and thinking. See README.md for conceptual background.
 
 ---
 
@@ -65,7 +41,7 @@ PARA is encoded structurally, so no fact is stored twice. Four orthogonal axes:
 | **Resource → effort dependency** | **forward cross-references** on project/area pages linking to the resources they use; resources are discoverable via those inbound links |
 | **Topics** | **namespaced `tags`** (`technology/postgres`, `vendor/acme`) drawn from `resources/index.md` |
 
-Source/reference documents live flat in `resources/` (the shared pool) — a document may serve many efforts, so it is not filed under any one. `resources/index.md` is the controlled topic-tag vocabulary. Analyses and member pages instead live **inside** their owning project/area folder and name it via `parent`. **There are no `project/`·`area/`·`resource/`·`archive/` tags** — `tags` carry topics only. (A wiki's `CLAUDE.md` is authoritative; some domains keep the older PARA-tag convention instead.)
+Source/reference documents live flat in `resources/` — a document may serve many efforts, so it is not filed under any one. Analyses and member pages live **inside** their owning project/area folder with a `parent` field. `tags` carry namespaced topics only; the controlled vocabulary lives in `CLAUDE.md`. `CLAUDE.md` is authoritative on all conventions.
 
 **Claude owns everything in `wiki/`. Claude never modifies `capture/`.**
 
@@ -121,7 +97,7 @@ Create `<root>/CLAUDE.md` using the following template, filled in with the user'
 - **analysis** — a comparison, synthesis, decision doc, or express output; owned by one area/project
 - **overview** — a high-level synthesis page
 
-## How pages are organized — four orthogonal axes (no PARA tags)
+## How pages are organized — four orthogonal axes
 | Axis | Encoded by |
 |------|-----------|
 | PARA bucket | the directory (`projects/`, `areas/`, `resources/`, `archive/`) |
@@ -130,11 +106,20 @@ Create `<root>/CLAUDE.md` using the following template, filled in with the user'
 | Topics | namespaced `tags` from `resources/index.md` |
 
 ## Frontmatter fields
-All pages use: `type`, `title`, `tags` (namespaced topics only), `last_updated`, `source_count`, `distill_level`
+All pages use: `type`, `title`, `tags` (namespaced topics only, from `## Tag vocabulary` below), `last_updated`, `source_count`, `distill_level`
 Child/member pages add: `parent` — the single area or project they belong to
 
 ## Domain-specific notes
 <Any conventions specific to this domain, e.g. "pages for characters use type: entity and include an 'appears_in' field".>
+
+## Tag vocabulary
+Namespaced topic tags only. Add here before using; one canonical spelling per concept.
+People and companies are entities (a page + a link), not tags.
+
+<!-- Define namespaces that fit the domain, e.g.: -->
+### technology/
+### vendor/
+### process/
 
 ## Backup
 <!-- omit this section if no backup is configured -->
@@ -142,7 +127,7 @@ Pattern: <binaries-only | full-repo | rclone-only>
 Command: rclone sync <source-path> <remote>:<destination-path>
 ```
 
-Also create `<root>/wiki/resources/index.md` as the controlled topic-tag vocabulary (namespaces like `technology/`, `vendor/`, `process/`, `team/` — define what fits the domain; avoid a catch-all), and `<root>/wiki/projects/`, `areas/`, `resources/` directories.
+Also create `<root>/wiki/projects/`, `areas/`, `resources/` directories.
 
 Create `<root>/wiki/index.md`:
 ```markdown
@@ -232,12 +217,10 @@ directly with the intent to integrate it.
 
 3. **Read `wiki/index.md`** to understand what already exists.
 
-4. **Assign topic tags + note which efforts it serves.** Scan `wiki/resources/index.md`
-   (the controlled topic-tag vocabulary) for existing namespaced tags. Choose the namespaced
-   topics that fit (`technology/…`, `vendor/…`, `compliance/…`, `process/…`, `team/…`, …), adding new ones
-   to `index.md` first. Separately, note which projects/areas the document serves — that
-   association is recorded as forward links on those project/area pages (step 6), not as a tag.
-   Confirm briefly if unclear:
+4. **Assign topic tags + note which efforts it serves.** Scan `CLAUDE.md`'s `## Tag vocabulary`
+   for existing namespaced tags. Choose the topics that fit, adding new ones to `CLAUDE.md` first.
+   Separately, note which projects/areas the document serves — record that as forward links on
+   those project/area pages (step 6), not as a tag. Confirm briefly if unclear:
    > "Topics `vendor/tektelic` + `technology/lorawan`; serves `project/migration`. OK?"
 
 5. **Write a source summary page** in the reference pool — `wiki/resources/<slug>.md`
@@ -247,7 +230,7 @@ directly with the intent to integrate it.
    type: source
    title: <title>
    date_organized: <date>
-   tags: [vendor/tektelic, technology/lorawan]   # namespaced topics only — no PARA tags
+   tags: [vendor/tektelic, technology/lorawan]
    distill_level: 0
    ---
    # <Title>
@@ -366,7 +349,7 @@ triggered by "summarize what I know about X" — that's a Query.
 
 5. **For drafts/reports:** write the output **inside its parent's folder** alongside that
    project/area's `index.md` (e.g. `wiki/projects/<name>/<slug>.md`, `wiki/areas/<name>/<slug>.md`),
-   set the `parent` field, and give it namespaced topic tags (no PARA tag). Promote a flat
+   set the `parent` field, and give it namespaced topic tags. Promote a flat
    area/project page to a folder if needed. `CLAUDE.md` is authoritative on placement. Then
    update index + log.
 
@@ -504,7 +487,7 @@ Every wiki page should have:
 ---
 type: entity | concept | source | analysis | overview
 title: <human-readable title>
-tags: [<namespace/topic>, <namespace/topic>]   # topics only — no PARA tags
+tags: [<namespace/topic>, <namespace/topic>]
 last_updated: <date>
 source_count: <N>       # how many sources have touched this page
 distill_level: 0        # 0=raw, 1=bolded, 2=summary added, 3=condensed
@@ -512,8 +495,7 @@ last_distilled: <date>  # omit if never distilled
 ---
 ```
 
-**No PARA tags.** PARA is encoded by the four axes above (directory / `parent` / backlinks /
-topics). `tags` carry **namespaced topic keywords only**, drawn from `resources/index.md`
+`tags` carry **namespaced topic keywords only**, drawn from `CLAUDE.md`'s `## Tag vocabulary`
 (e.g. `technology/postgres`, `vendor/acme`, `compliance/soc2`, `process/hiring`).
 
 **`parent`** — child/member pages (analyses, runbooks, people) add a `parent` field naming the
@@ -521,7 +503,7 @@ single owning area or project; they live inside that parent's folder:
 ```yaml
 type: analysis
 parent: project/<name>   # or area/<name>
-tags: [process/<x>, technology/<y>]   # topics only
+tags: [process/<x>, technology/<y>]
 ```
 
 ### Cross-references
