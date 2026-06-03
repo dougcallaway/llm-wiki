@@ -2,7 +2,7 @@
 name: llm-wiki
 description: >
   Maintains a persistent, Claude-owned personal knowledge base (wiki) on the local
-  filesystem using Karpathy's LLM Wiki pattern and Forte's CODE method. Trigger when
+  filesystem using Karpathy's LLM Wiki pattern and Forte's PARA and CODE methods. Trigger when
   the user wants to build or query a knowledge base, capture notes or sources, or produce
   output from accumulated knowledge. Key phrases: "my wiki", "add this to my wiki",
   "capture this", "distill", "what do I know about X", "write a draft from my notes".
@@ -31,17 +31,16 @@ A Claude-maintained personal knowledge base. Claude does all the writing and boo
 └── CLAUDE.md          # The schema — wiki conventions and domain config
 ```
 
-### Organizing model: PARA by location, not by tag
-PARA is encoded structurally, so no fact is stored twice. Four orthogonal axes:
+### Organizing model
+Three orthogonal axes make the wiki easy to browse and query for both humans and machines:
 
 | Axis | Encoded by |
 |------|-----------|
-| **PARA bucket** (project/area/resource/archive) | the **directory** the page lives in |
-| **Owner** of a child/member page | the **`parent`** frontmatter field (e.g. `parent: project/x`) |
-| **Resource → effort dependency** | **forward cross-references** on project/area pages linking to the resources they use; resources are discoverable via those inbound links |
-| **Topics** | **namespaced `tags`** (`technology/postgres`, `vendor/acme`) drawn from `CLAUDE.md`'s `## Tag vocabulary` |
+| **Location** | **PARA bucket** (project/area/resource/archive) — the directory the page lives in |
+| **Links** | **Cross-references** from effort pages (projects/areas) to the resources they depend on |
+| **Tags** | **Namespaced tags** (e.g. `technology/x`, `vendor/y`) drawn from `CLAUDE.md`'s `## Tag vocabulary` |
 
-Analyses and member pages live **inside** their owning project/area folder with a `parent` field. `CLAUDE.md` is authoritative on all conventions.
+Analyses and member pages live **inside** their owning project/area folder. `CLAUDE.md` is authoritative on all conventions.
 
 **Claude owns everything in `wiki/`. Claude never modifies `capture/`.**
 
@@ -93,17 +92,17 @@ Create `<root>/CLAUDE.md` using the following template, filled in with the user'
 - **analysis** — a comparison, synthesis, decision doc, or express output; owned by one area/project
 - **overview** — a high-level synthesis page
 
-## How pages are organized — four orthogonal axes
+## Organizing model
+Three orthogonal axes make the wiki easy to browse and query for both humans and machines:
+
 | Axis | Encoded by |
 |------|-----------|
-| PARA bucket | the directory (`projects/`, `areas/`, `resources/`, `archive/`) |
-| Owner of a child/member page | the `parent` frontmatter field |
-| Resource → effort dependency | forward cross-references on project/area pages linking to the resources they use |
-| Topics | namespaced `tags` drawn from `## Tag vocabulary` below |
+| **Location** | **PARA bucket** (Projects/Areas/Resources/Archives) — the directory the page lives in |
+| **Links** | **Cross-references** from effort pages (projects/areas) to the resources they depend on |
+| **Tags** | **Namespaced tags** (e.g. `technology/x`, `vendor/y`) drawn from `## Tag vocabulary` below |
 
 ## Frontmatter fields
 All pages use: `type`, `title`, `tags` (namespaced topics only, from `## Tag vocabulary` below), `last_updated`, `source_count`, `distill_level`
-Child/member pages add: `parent` — the single area or project they belong to
 
 ## Domain-specific notes
 <Any conventions specific to this domain, e.g. "pages for characters use type: entity and include an 'appears_in' field".>
@@ -238,8 +237,7 @@ directly with the intent to integrate it.
    - **For each project/area page that uses this source:** add a forward cross-reference link to the source page (e.g. in a "Resources" or "References" section). This is how the resource-effort relationship is recorded — on the effort side, not on the resource.
 
 7. **Create new pages** for any entity, concept, or theme that appears significantly
-   in the source and doesn't have a page yet. File each in the right bucket directory
-   (and set `parent` if it's a child/member of a project or area).
+   in the source and doesn't have a page yet. File each in the right bucket directory.
 
 8. **Update `wiki/index.md`** — add the source to the sources table, add/update
    entries for any new or significantly changed pages.
@@ -328,16 +326,15 @@ triggered by "summarize what I know about X" — that's a Query.
 3. **Draft the output,** drawing on wiki content with inline citations to source pages.
    Do not reproduce wiki content verbatim — synthesize and rewrite for the target format.
 
-4. **Determine the parent.** Every analysis is scoped to exactly one area or project — the one
+4. **Determine the filing location.** Every analysis belongs to exactly one area or project — the one
    it serves. Infer it from context (the user's active project, the folder/topics of the source
    pages used) and confirm briefly if unclear:
    > "I'll file this under `project/methanetrack-infra-migration` — correct?"
 
-5. **For drafts/reports:** write the output **inside its parent's folder** alongside that
-   project/area's `index.md` (e.g. `wiki/projects/<name>/<slug>.md`, `wiki/areas/<name>/<slug>.md`),
-   set the `parent` field, and give it namespaced topic tags. Promote a flat
-   area/project page to a folder if needed. `CLAUDE.md` is authoritative on placement. Then
-   update index + log.
+5. **For drafts/reports:** write the output **inside that project/area's folder** alongside its
+   `index.md` (e.g. `wiki/projects/<name>/<slug>.md`, `wiki/areas/<name>/<slug>.md`),
+   and give it namespaced topic tags. Promote a flat area/project page to a folder if needed.
+   `CLAUDE.md` is authoritative on placement. Then update index + log.
 
 6. **For decision docs:** use this structure:
    ```markdown
@@ -405,8 +402,8 @@ The key signal is retrieval and synthesis in chat, not producing a finished arti
    a connection, or an analysis the user hadn't made explicit:
    > "Want me to save this as a wiki page? It would live inside its parent area/project,
    > e.g. `wiki/projects/<name>/<slug>.md`."
-   If yes, write it as an analysis (set `parent`, namespaced topic tags, file it inside that
-   parent's folder per the Express rules) and update the index + log.
+   If yes, write it as an analysis (namespaced topic tags, file it inside the owning
+   project/area's folder per the Express rules) and update the index + log.
 
    **If the answer was filed and `.git` exists in the wiki root**, suggest: `git add . && git commit -m "express: <Answer Title>"`. Wait for user confirmation before running. (Use `express:` since a filed query answer is conceptually an express output.)
 
@@ -481,19 +478,11 @@ last_distilled: <date>  # omit if never distilled
 `tags` carry **namespaced topic keywords only**, drawn from `CLAUDE.md`'s `## Tag vocabulary`
 (e.g. `technology/postgres`, `vendor/acme`, `compliance/soc2`, `process/hiring`).
 
-**`parent`** — child/member pages (analyses, runbooks, people) add a `parent` field naming the
-single owning area or project; they live inside that parent's folder:
-```yaml
-type: analysis
-parent: project/<name>   # or area/<name>
-tags: [process/<x>, technology/<y>]
-```
-
 ### Cross-references
 Use relative markdown links: `[Concept Name](../concepts/concept-name.md)`
 Also support `[[wikilink]]` style if the user is using Obsidian.
 
-Resource pages use `**Cross-references:**` for entity/concept links. The resource-effort dependency is recorded as forward links **on the project/area page** (in a "Resources" or "References" section), not on the resource itself. A resource's usage is therefore discoverable by checking which project/area pages link to it — Lint flags resources with no inbound project/area links as potentially orphaned.
+Resource pages use `**Cross-references:**` for entity/concept links. Which efforts use a resource is recorded as links **on the project/area page** (in a "Resources" or "References" section), not on the resource itself. A resource's usage is therefore discoverable by checking which project/area pages link to it — Lint flags resources with no inbound project/area links as potentially orphaned.
 
 ### Contradiction markers
 ```

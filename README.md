@@ -2,7 +2,7 @@
 
 A Claude Code skill that maintains a persistent personal knowledge base using
 [Karpathy's LLM Wiki pattern](https://karpathy.github.io/2023/11/13/llmwiki/) and
-[Forte's CODE method](https://fortelabs.com/blog/the-4-levels-of-personal-knowledge-management/).
+[Forte's PARA](https://fortelabs.com/blog/para/) and [CODE methods](https://fortelabs.com/blog/the-4-levels-of-personal-knowledge-management/).
 
 ## How it works
 
