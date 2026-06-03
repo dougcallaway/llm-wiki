@@ -26,7 +26,7 @@ A Claude-maintained personal knowledge base. Claude does all the writing and boo
 │   ├── overview.md    # High-level synthesis of the whole wiki
 │   ├── projects/      # the "P" bucket — active deliverables (one folder per project)
 │   ├── areas/         # the "A" bucket — ongoing responsibilities
-│   ├── resources/     # the "R" bucket — shared reference-document pool + index.md tag vocabulary
+│   ├── resources/     # the "R" bucket — shared reference-document pool
 │   └── archive/       # inactive projects/areas (created on demand)
 └── CLAUDE.md          # The schema — wiki conventions and domain config
 ```
@@ -39,9 +39,9 @@ PARA is encoded structurally, so no fact is stored twice. Four orthogonal axes:
 | **PARA bucket** (project/area/resource/archive) | the **directory** the page lives in |
 | **Owner** of a child/member page | the **`parent`** frontmatter field (e.g. `parent: project/x`) |
 | **Resource → effort dependency** | **forward cross-references** on project/area pages linking to the resources they use; resources are discoverable via those inbound links |
-| **Topics** | **namespaced `tags`** (`technology/postgres`, `vendor/acme`) drawn from `resources/index.md` |
+| **Topics** | **namespaced `tags`** (`technology/postgres`, `vendor/acme`) drawn from `CLAUDE.md`'s `## Tag vocabulary` |
 
-Source/reference documents live flat in `resources/` — a document may serve many efforts, so it is not filed under any one. Analyses and member pages live **inside** their owning project/area folder with a `parent` field. `tags` carry namespaced topics only; the controlled vocabulary lives in `CLAUDE.md`. `CLAUDE.md` is authoritative on all conventions.
+Analyses and member pages live **inside** their owning project/area folder with a `parent` field. `CLAUDE.md` is authoritative on all conventions.
 
 **Claude owns everything in `wiki/`. Claude never modifies `capture/`.**
 
@@ -49,11 +49,7 @@ Source/reference documents live flat in `resources/` — a document may serve ma
 - **Quick captures** — timestamped notes/links/quotes dropped in without processing, named `<timestamp>-<slug>.md`
 - **Source documents** — articles, PDFs, transcripts, and other raw material ready to organize
 
-Both are immutable once written. The distinction is just how they arrived, not how they're treated.
-
-The `CLAUDE.md` schema file is how you and Claude co-evolve the wiki's conventions
-over time. When starting a new wiki, Claude creates a sensible default schema.
-Update it together as you discover what works for your domain.
+Both are immutable once written.
 
 ---
 
@@ -103,7 +99,7 @@ Create `<root>/CLAUDE.md` using the following template, filled in with the user'
 | PARA bucket | the directory (`projects/`, `areas/`, `resources/`, `archive/`) |
 | Owner of a child/member page | the `parent` frontmatter field |
 | Resource → effort dependency | forward cross-references on project/area pages linking to the resources they use |
-| Topics | namespaced `tags` from `resources/index.md` |
+| Topics | namespaced `tags` drawn from `## Tag vocabulary` below |
 
 ## Frontmatter fields
 All pages use: `type`, `title`, `tags` (namespaced topics only, from `## Tag vocabulary` below), `last_updated`, `source_count`, `distill_level`
@@ -191,10 +187,6 @@ or any short idea/link/quote the user tosses over without asking for full proces
    ```
 2. Confirm: "Captured to capture/. You have N unprocessed items — want me to organize any?"
 
-**Key principle:** Capture is fast and frictionless. No analysis, no wiki updates, no
-discussion. `capture/` is a holding area, not the wiki. Items sit there until the user
-asks to organize them.
-
 ---
 
 ### Organize  _(O in CODE)_
@@ -267,9 +259,6 @@ directly with the intent to integrate it.
 11. **Optionally update `wiki/overview.md`** if the source meaningfully shifts the
     overall synthesis.
 
-**Principle:** Be thorough on cross-references. The compounding value of the wiki
-comes from connections, not just summaries.
-
 ---
 
 ### Distill  _(D in CODE)_
@@ -312,9 +301,6 @@ top. Claude applies this to wiki pages.
    ```
 
    **If `.git` exists in the wiki root**, suggest: `git add . && git commit -m "distill: <Page Title> (level <N>-><N+1>)"`. Wait for user confirmation before running.
-
-**Principle:** Distillation is lossy by design. The goal is resonance, not completeness.
-Keep what you'd want to rediscover six months from now.
 
 ---
 
@@ -380,9 +366,6 @@ triggered by "summarize what I know about X" — that's a Query.
    ```
 
    **If `.git` exists in the wiki root**, suggest: `git add . && git commit -m "express: <Output Title>"`. Wait for user confirmation before running.
-
-**Principle:** Express outputs are first-class wiki citizens — file them back. A good
-draft is evidence of what you know; it belongs in the knowledge base.
 
 **External references:** When citing code, PRs, or artifacts outside the wiki, prefer
 stable pointers over fragile ones. A branch name or local file path will go stale;
@@ -527,8 +510,7 @@ If the wiki domain benefits from epistemic tagging:
 
 ## index.md format
 
-The index is the primary navigation file. Claude reads it before every query and
-updates it after every organize. Keep it scannable:
+Keep it scannable — one-line summaries only.
 
 ```markdown
 # Index — <Wiki Name>
@@ -567,9 +549,6 @@ Operation types: `init`, `capture`, `organize`, `distill`, `express`, `query`, `
 ## [2026-04-01] init | Wiki created
 Domain: AI Research
 
-## [2026-04-02] capture | Link to Kaplan scaling laws post
-Captured: capture/2026-04-02-kaplan-scaling.md
-
 ## [2026-04-02] organize | Attention Is All You Need
 Pages updated: transformer, attention-mechanism, encoder-decoder
 New pages: multi-head-attention, positional-encoding
@@ -577,19 +556,11 @@ New pages: multi-head-attention, positional-encoding
 ## [2026-04-03] distill | transformer
 Level: 0 → 2
 
-## [2026-04-04] query | What's the difference between attention and memory?
-Filed as: wiki/areas/ml-architectures/attention-vs-memory.md
-
-## [2026-04-05] express | Draft: The Case for Attention-Only Architectures
+## [2026-04-04] express | Draft: The Case for Attention-Only Architectures
 Type: draft
 Parent: project/attention-post
 Filed: wiki/projects/attention-post/attention-only-draft.md
 Sources used: transformer, multi-head-attention, attention-is-all-you-need
-
-## [2026-04-06] lint | Lint pass
-Issues found: 3 (1 contradiction, 2 orphans)
-Fixed: 2 orphans linked from overview
-Deferred: contradiction on learning-rate-schedules (needs human decision)
 ```
 
 ---
@@ -620,6 +591,7 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 - **Contradictions are first-class citizens.** Don't silently pick a side — mark them
   and let the user decide.
 - **PARA reflects the user's current life, not the content.** The same resource may serve multiple efforts — record those dependencies as forward links on each project/area page. When in doubt about which efforts a resource serves, ask.
+- **Distillation is lossy by design.** Optimize for resonance, not completeness — keep what the user would want to rediscover six months from now.
 - **Distill before Express.** If asked to express from pages at distill_level 0, suggest
   distilling first — the output will be sharper.
 - **File good answers and outputs back.** Insights and drafts shouldn't disappear into
