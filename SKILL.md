@@ -183,6 +183,16 @@ Command: rclone sync <source-path> <remote>:<destination-path>
 ```
 For **binaries-only**, `<source-path>` is `<wiki-root>/capture/`. For **full-repo** and **rclone-only**, it is `<wiki-root>/`. If the user skips backup setup, omit the `## Backup` section entirely.
 
+If git was set up **and** an rclone pattern was chosen, also create the post-commit hook:
+```bash
+cat > <wiki-root>/.git/hooks/post-commit << 'EOF'
+#!/bin/sh
+command -v rclone >/dev/null 2>&1 && rclone sync <source-path> <remote>:<destination-path>
+EOF
+chmod +x <wiki-root>/.git/hooks/post-commit
+```
+Use the same source/remote/destination from the `## Backup` section. Skip this step for the **rclone-only** pattern (no git, no hook).
+
 ---
 
 ## Operations
@@ -752,7 +762,23 @@ The `--exclude ".git/**"` flag is a safety net in case a `.git/` directory exist
 
 **`sync` vs. `copy`:** `rclone sync` mirrors the source — it adds new files and removes files deleted locally. Use `rclone copy` instead if you want the destination to only grow (never delete).
 
-**Claude's role:** Claude does not run rclone automatically. If `CLAUDE.md` contains a `## Backup` section, use the exact command recorded there for sync reminders. After an organize, distill, or express pass, Claude may remind the user to sync. Skip this reminder if the user has automated the sync. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.
+**Post-commit hook (recommended when using git):**
+
+Wire rclone to git's post-commit hook so every commit automatically triggers a sync — no manual reminders needed:
+
+```bash
+cat > <wiki-root>/.git/hooks/post-commit << 'EOF'
+#!/bin/sh
+command -v rclone >/dev/null 2>&1 && rclone sync <source-path> <remote>:<destination-path>
+EOF
+chmod +x <wiki-root>/.git/hooks/post-commit
+```
+
+Replace `<source-path>`, `<remote>`, and `<destination-path>` with the values from `CLAUDE.md`'s `## Backup` section. The `command -v` guard makes the hook a no-op if rclone is not installed, so it never blocks a commit.
+
+Note: `.git/hooks/` is not tracked by git. If you restore the repo from rclone and need to recreate the hook, re-run the commands above (or ask Claude — the command is in `CLAUDE.md`).
+
+**Claude's role:** Claude does not run rclone automatically. If `.git/hooks/post-commit` exists, skip sync reminders — the hook fires on every commit. If no hook exists but `CLAUDE.md` contains a `## Backup` section, remind the user to sync after each organize, distill, or express pass using the exact command from `CLAUDE.md`. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.
 
 ---
 
