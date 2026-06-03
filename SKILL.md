@@ -663,14 +663,15 @@ Note: `git checkout <hash> -- <path>` stages the files but does not commit — a
 
 rclone syncs wiki files to cloud storage. It supports 70+ backends: OneDrive, Google Drive, S3, Backblaze B2, Dropbox, and many more.
 
-Two patterns, pick one:
+Three patterns, pick one:
 
 | Pattern | What rclone syncs | When to choose |
 |---------|------------------|----------------|
-| **Complement to git** | `capture/` only | You use git for `wiki/`; `capture/` holds large binaries that don't belong in git |
-| **Alternative to git** | Entire wiki root | You want simple backup without git; history via cloud provider's built-in versioning |
+| **Complement to git — binaries only** | `capture/` only | git handles `wiki/`; you push to a remote like GitHub; rclone covers the binaries git skips |
+| **Complement to git — full repo** | Entire wiki root including `.git/` | Single-user wiki; you want git history locally without pushing to a remote; rclone is the remote |
+| **Alternative to git** | Entire wiki root (no `.git/`) | No git at all; history via cloud provider's built-in versioning |
 
-**rclone vs. git for `wiki/`:** git gives you per-line diff history, structured commits, and true rollback at any granularity. rclone gives you simpler setup and works for any file type, but rollback is limited to point-in-time file versions (available on backends like OneDrive, S3, and GCS with versioning enabled). Use git if history matters; use rclone if backup is enough.
+**rclone vs. git for `wiki/`:** git gives you per-line diff history, structured commits, and true rollback at any granularity. rclone gives you simpler setup and works for any file type, but rollback depends on what you sync: the full-repo pattern preserves complete git history in the cloud (restore with `rclone sync`; `git log` still works); the alternative-to-git pattern relies on the cloud provider's file versioning (OneDrive, S3, GCS). Use git-as-remote if history matters and you need to access the repo from multiple machines; use rclone-as-remote for a single-user wiki that stays local.
 
 **Install:**
 
@@ -696,11 +697,7 @@ Follow the interactive prompts for your chosen backend. Name the remote somethin
 rclone lsd backup:
 ```
 
-**Sync — complement to git (capture/ only):**
-
-```bash
-rclone sync <wiki-root>/capture/ backup:wiki-capture/
-```
+**Sync — complement to git, binaries only:**
 
 Add `capture/` to `.gitignore` so the binaries stay out of the git repo:
 
@@ -709,21 +706,38 @@ Add `capture/` to `.gitignore` so the binaries stay out of the git repo:
 capture/
 ```
 
-**Sync — alternative to git (full wiki root):**
+Then sync only `capture/`:
+
+```bash
+rclone sync <wiki-root>/capture/ backup:wiki-capture/
+```
+
+**Sync — complement to git, full repo (rclone as the remote):**
+
+Sync the entire wiki root including `.git/`. This preserves full git history in the cloud without needing GitHub:
+
+```bash
+rclone sync <wiki-root>/ backup:my-wiki/
+```
+
+To restore on a new machine:
+
+```bash
+rclone sync backup:my-wiki/ <wiki-root>/
+# git log, git checkout, etc. all work — .git/ is intact
+```
+
+**Sync — alternative to git (no git):**
 
 ```bash
 rclone sync <wiki-root>/ backup:my-wiki/ --exclude ".git/**"
 ```
 
-The `--exclude ".git/**"` flag prevents rclone from touching any existing git metadata if you later decide to add git.
+The `--exclude ".git/**"` flag is a safety net in case a `.git/` directory exists; omit it if the wiki has never used git.
 
 **`sync` vs. `copy`:** `rclone sync` mirrors the source — it adds new files and removes files deleted locally. Use `rclone copy` instead if you want the destination to only grow (never delete).
 
-**Claude's role:** Claude does not run rclone automatically. After an organize, distill, or express pass, Claude may remind:
-
-> "Sync when ready: `rclone sync <wiki-root>/ backup:my-wiki/ --exclude '.git/**'`"
-
-Skip this reminder if the user has automated the sync. When rclone is the only backup mechanism (no git), Claude skips git commit suggestions entirely.
+**Claude's role:** Claude does not run rclone automatically. After an organize, distill, or express pass, Claude may remind the user to sync. Skip this reminder if the user has automated the sync. When rclone is the only backup mechanism (no git), Claude skips git commit suggestions entirely.
 
 ---
 
