@@ -24,10 +24,10 @@ A Claude-maintained personal knowledge base. Claude does all the writing and boo
 │   ├── index.md       # Content catalog — read first on every query
 │   ├── log.md         # Append-only chronological record
 │   ├── overview.md    # High-level synthesis of the whole wiki
-│   ├── projects/      # the "P" bucket — active deliverables (one folder per project)
-│   ├── areas/         # the "A" bucket — ongoing responsibilities
-│   ├── resources/     # the "R" bucket — shared reference-document pool
-│   └── archive/       # inactive projects/areas (created on demand)
+│   ├── projects/      # Active deliverables (one folder per project)
+│   ├── areas/         # Ongoing responsibilities
+│   ├── resources/     # Shared reference-document pool
+│   └── archive/       # Inactive projects/areas (created on demand)
 └── CLAUDE.md          # The schema — wiki conventions and domain config
 ```
 
