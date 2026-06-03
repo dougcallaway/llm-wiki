@@ -48,9 +48,24 @@ The user's job: capture, direct, and express. Claude's job: everything else.
 │   ├── index.md       # Content catalog — read first on every query
 │   ├── log.md         # Append-only chronological record
 │   ├── overview.md    # High-level synthesis of the whole wiki
-│   └── <pages>.md     # Entity, concept, source, and analysis pages
+│   ├── projects/      # the "P" bucket — active deliverables (one folder per project)
+│   ├── areas/         # the "A" bucket — ongoing responsibilities
+│   ├── resources/     # the "R" bucket — shared reference-document pool + index.md tag vocabulary
+│   └── archive/       # inactive projects/areas (created on demand)
 └── CLAUDE.md          # The schema — wiki conventions and domain config
 ```
+
+### Organizing model: PARA by location, not by tag
+PARA is encoded structurally, so no fact is stored twice. Four orthogonal axes:
+
+| Axis | Encoded by |
+|------|-----------|
+| **PARA bucket** (project/area/resource/archive) | the **directory** the page lives in |
+| **Owner** of a child/member page | the **`parent`** frontmatter field (e.g. `parent: project/x`) |
+| **Resource → effort dependency** | **forward cross-references** on project/area pages linking to the resources they use; resources are discoverable via those inbound links |
+| **Topics** | **namespaced `tags`** (`technology/postgres`, `vendor/acme`) drawn from `resources/index.md` |
+
+Source/reference documents live flat in `resources/` (the shared pool) — a document may serve many efforts, so it is not filed under any one. `resources/index.md` is the controlled topic-tag vocabulary. Analyses and member pages instead live **inside** their owning project/area folder and name it via `parent`. **There are no `project/`·`area/`·`resource/`·`archive/` tags** — `tags` carry topics only. (A wiki's `CLAUDE.md` is authoritative; some domains keep the older PARA-tag convention instead.)
 
 **Claude owns everything in `wiki/`. Claude never modifies `capture/`.**
 
@@ -102,27 +117,34 @@ Create `<root>/CLAUDE.md` using the following template, filled in with the user'
 ## Page types
 - **entity** — a person, organization, model, tool, or named thing
 - **concept** — an idea, technique, or principle
-- **source** — a processed article, paper, transcript, or document
-- **analysis** — a comparison, synthesis, decision doc, or express output
+- **source** — a processed reference document (article, paper, transcript, note); lives in `resources/`
+- **analysis** — a comparison, synthesis, decision doc, or express output; owned by one area/project
+- **overview** — a high-level synthesis page
+
+## How pages are organized — four orthogonal axes (no PARA tags)
+| Axis | Encoded by |
+|------|-----------|
+| PARA bucket | the directory (`projects/`, `areas/`, `resources/`, `archive/`) |
+| Owner of a child/member page | the `parent` frontmatter field |
+| Resource → effort dependency | forward cross-references on project/area pages linking to the resources they use |
+| Topics | namespaced `tags` from `resources/index.md` |
 
 ## Frontmatter fields
-All pages use: `type`, `title`, `tags`, `last_updated`, `source_count`, `distill_level`
-
-## PARA context
-<Describe the primary PARA mode for this wiki, e.g.:>
-- "Primarily a Resource wiki on AI research. Tag active writing projects as project/."
-- "Area wiki for health and fitness. Most pages are area/health."
+All pages use: `type`, `title`, `tags` (namespaced topics only), `last_updated`, `source_count`, `distill_level`
+Child/member pages add: `parent` — the single area or project they belong to
 
 ## Domain-specific notes
-<Any conventions specific to this domain, e.g. "pages for characters use type: entity and include a 'appears_in' field".>
+<Any conventions specific to this domain, e.g. "pages for characters use type: entity and include an 'appears_in' field".>
 ```
+
+Also create `<root>/wiki/resources/index.md` as the controlled topic-tag vocabulary (namespaces like `technology/`, `vendor/`, `process/`, `team/` — define what fits the domain; avoid a catch-all), and `<root>/wiki/projects/`, `areas/`, `resources/` directories.
 
 Create `<root>/wiki/index.md`:
 ```markdown
 # Index
 _Last updated: <date>_
 
-## Sources
+## Resources
 | Page | Summary | Date |
 |------|---------|------|
 
@@ -131,6 +153,7 @@ _Last updated: <date>_
 ## Concepts
 
 ## Analyses
+_Grouped by parent area/project._
 ```
 
 Create `<root>/wiki/log.md`:
@@ -192,26 +215,22 @@ directly with the intent to integrate it.
 
 3. **Read `wiki/index.md`** to understand what already exists.
 
-4. **Assign a PARA tag.** Scan `wiki/index.md` for existing PARA tags already in use.
-   Suggest the most logical tag for this source, biasing toward existing categories:
-   - If the content clearly fits an existing tag (e.g. `resource/ai-research` already
-     exists and this is an AI paper), propose it directly.
-   - If no existing tag fits well, propose a new one based on the content's topic or
-     the active project/area it most likely serves.
-   - For `project/` and `area/` tags, the name should match the project or area.
-   - For `resource/` tags, suggest a topic category name.
-   - For `archive/` tags, use the original project or area name being archived.
+4. **Assign topic tags + note which efforts it serves.** Scan `wiki/resources/index.md`
+   (the controlled topic-tag vocabulary) for existing namespaced tags. Choose the namespaced
+   topics that fit (`technology/…`, `vendor/…`, `compliance/…`, `process/…`, `team/…`, …), adding new ones
+   to `index.md` first. Separately, note which projects/areas the document serves — that
+   association is recorded as forward links on those project/area pages (step 6), not as a tag.
+   Confirm briefly if unclear:
+   > "Topics `vendor/tektelic` + `technology/lorawan`; serves `project/migration`. OK?"
 
-   Present the suggestion and let the user confirm or change it before proceeding:
-   > "I'd tag this as `resource/ai-research` — matches the existing category. OK?"
-
-5. **Write a source summary page** at `wiki/sources/<slug>.md`:
+5. **Write a source summary page** in the reference pool — `wiki/resources/<slug>.md`
+   (`CLAUDE.md` is authoritative on the pool's folder name and conventions):
    ```markdown
    ---
    type: source
    title: <title>
    date_organized: <date>
-   tags: [resource/ai-research, transformer, foundational]
+   tags: [vendor/tektelic, technology/lorawan]   # namespaced topics only — no PARA tags
    distill_level: 0
    ---
    # <Title>
@@ -224,10 +243,11 @@ directly with the intent to integrate it.
    A single source typically touches 5–15 pages. For each affected page:
    - Add new information
    - Note contradictions inline: `> ⚠️ Contradiction: <source> says X, but <other> says Y`
-   - Add a cross-reference back to the source summary page
+   - **For each project/area page that uses this source:** add a forward cross-reference link to the source page (e.g. in a "Resources" or "References" section). This is how the resource-effort relationship is recorded — on the effort side, not on the resource.
 
 7. **Create new pages** for any entity, concept, or theme that appears significantly
-   in the source and doesn't have a page yet. Assign each a PARA tag.
+   in the source and doesn't have a page yet. File each in the right bucket directory
+   (and set `parent` if it's a child/member of a project or area).
 
 8. **Update `wiki/index.md`** — add the source to the sources table, add/update
    entries for any new or significantly changed pages.
@@ -316,15 +336,24 @@ triggered by "summarize what I know about X" — that's a Query.
    Claude picks the most fitting type based on context and confirms briefly.
 
 2. **Read `wiki/index.md`** and pull all relevant pages — prioritize pages with
-   high `distill_level` (already refined) and matching PARA tags. If key pages are
-   at `distill_level` 0, suggest distilling them first.
+   high `distill_level` (already refined) and pages in the relevant project/area folder or
+   tagged with related topics. If key pages are at `distill_level` 0, suggest distilling first.
 
 3. **Draft the output,** drawing on wiki content with inline citations to source pages.
    Do not reproduce wiki content verbatim — synthesize and rewrite for the target format.
 
-4. **For drafts/reports:** write to `wiki/analyses/<slug>.md` and update index + log.
+4. **Determine the parent.** Every analysis is scoped to exactly one area or project — the one
+   it serves. Infer it from context (the user's active project, the folder/topics of the source
+   pages used) and confirm briefly if unclear:
+   > "I'll file this under `project/methanetrack-infra-migration` — correct?"
 
-5. **For decision docs:** use this structure:
+5. **For drafts/reports:** write the output **inside its parent's folder** alongside that
+   project/area's `index.md` (e.g. `wiki/projects/<name>/<slug>.md`, `wiki/areas/<name>/<slug>.md`),
+   set the `parent` field, and give it namespaced topic tags (no PARA tag). Promote a flat
+   area/project page to a folder if needed. `CLAUDE.md` is authoritative on placement. Then
+   update index + log.
+
+6. **For decision docs:** use this structure:
    ```markdown
    ## Decision: <Question>
    **Context:** ...
@@ -336,13 +365,17 @@ triggered by "summarize what I know about X" — that's a Query.
    **Risks & open questions:** ...
    **Sources:** links to wiki pages used
    ```
-   Write to `wiki/analyses/<slug>.md`.
+   File it under its parent, same as drafts/reports (step 5).
 
-6. **Append to log:**
+7. **Link the analysis from its parent page** (an "Analyses" section on the area/project page) so
+   it isn't an orphan, and add it under the matching parent group in `wiki/index.md`.
+
+8. **Append to log:**
    ```
    ## [<date>] express | <Output Title>
    Type: draft | report | decision
-   Filed: wiki/analyses/<slug>.md
+   Parent: <area-or-project>
+   Filed: <path to the analysis>
    Sources used: <list of wiki pages>
    ```
 
@@ -387,8 +420,10 @@ The key signal is retrieval and synthesis in chat, not producing a finished arti
 
 4. **Offer to file non-trivial answers back** — if the answer involved a comparison,
    a connection, or an analysis the user hadn't made explicit:
-   > "Want me to save this as a wiki page? It could live at `wiki/analyses/<slug>.md`."
-   If yes, write it and update the index + log.
+   > "Want me to save this as a wiki page? It would live inside its parent area/project,
+   > e.g. `wiki/projects/<name>/<slug>.md`."
+   If yes, write it as an analysis (set `parent`, namespaced topic tags, file it inside that
+   parent's folder per the Express rules) and update the index + log.
 
    **If the answer was filed and `.git` exists in the wiki root**, suggest: `git add . && git commit -m "express: <Answer Title>"`. Wait for user confirmation before running. (Use `express:` since a filed query answer is conceptually an express output.)
 
@@ -409,6 +444,7 @@ Triggered by: "health check", "audit the wiki", "clean up", "find gaps", "lint".
 2. Check for and report:
    - **Contradictions** — pages making conflicting claims
    - **Orphans** — pages with no inbound links from other wiki pages
+   - **Unused resources** — resource pages that no project/area page links to (may be general-purpose, or may be forgotten after an effort ended)
    - **Stale claims** — pages that haven't been updated despite newer sources that touch the same topic (check `log.md` for ordering)
    - **Missing pages** — concepts mentioned frequently across pages but lacking their own page
    - **Dead links** — `[[wikilinks]]` or relative links pointing to non-existent pages
@@ -420,6 +456,8 @@ Triggered by: "health check", "audit the wiki", "clean up", "find gaps", "lint".
    ### Contradictions (needs human decision)
    - ...
    ### Orphan pages
+   - ...
+   ### Unused resources (no project/area links to these)
    - ...
    ### Missing pages (suggested)
    - ...
@@ -449,7 +487,7 @@ Every wiki page should have:
 ---
 type: entity | concept | source | analysis | overview
 title: <human-readable title>
-tags: [<para-tag>, <tag1>, <tag2>]
+tags: [<namespace/topic>, <namespace/topic>]   # topics only — no PARA tags
 last_updated: <date>
 source_count: <N>       # how many sources have touched this page
 distill_level: 0        # 0=raw, 1=bolded, 2=summary added, 3=condensed
@@ -457,15 +495,23 @@ last_distilled: <date>  # omit if never distilled
 ---
 ```
 
-**PARA tags** — exactly one per page, included in `tags`:
-- `project/<name>` — directly feeds an active deliverable, e.g. `project/writing-my-book`
-- `area/<name>` — ongoing responsibility or interest, e.g. `area/health`
-- `resource/<topic>` — reference material by topic, e.g. `resource/ai-research`
-- `archive/<name>` — inactive; retains the original project or area name, e.g. `archive/old-project`
+**No PARA tags.** PARA is encoded by the four axes above (directory / `parent` / backlinks /
+topics). `tags` carry **namespaced topic keywords only**, drawn from `resources/index.md`
+(e.g. `technology/postgres`, `vendor/acme`, `compliance/soc2`, `process/hiring`).
+
+**`parent`** — child/member pages (analyses, runbooks, people) add a `parent` field naming the
+single owning area or project; they live inside that parent's folder:
+```yaml
+type: analysis
+parent: project/<name>   # or area/<name>
+tags: [process/<x>, technology/<y>]   # topics only
+```
 
 ### Cross-references
 Use relative markdown links: `[Concept Name](../concepts/concept-name.md)`
 Also support `[[wikilink]]` style if the user is using Obsidian.
+
+Resource pages use `**Cross-references:**` for entity/concept links. The resource-effort dependency is recorded as forward links **on the project/area page** (in a "Resources" or "References" section), not on the resource itself. A resource's usage is therefore discoverable by checking which project/area pages link to it — Lint flags resources with no inbound project/area links as potentially orphaned.
 
 ### Contradiction markers
 ```
@@ -487,12 +533,12 @@ updates it after every organize. Keep it scannable:
 
 ```markdown
 # Index — <Wiki Name>
-_<N> sources | <M> pages | Last updated: <date>_
+_<N> resources | <M> pages | Last updated: <date>_
 
-## Sources
+## Resources
 | Page | Summary | Organized |
 |------|---------|---------|
-| [Title](sources/slug.md) | One sentence | 2026-04-01 |
+| [Title](resources/slug.md) | One sentence | 2026-04-01 |
 
 ## Entities
 | Page | Summary |
@@ -502,7 +548,11 @@ _<N> sources | <M> pages | Last updated: <date>_
 | Page | Summary |
 
 ## Analyses
+_Analyses live inside their parent area/project; grouped here by parent for discoverability._
+
+### <parent area or project>
 | Page | Summary |
+|------|---------|
 ```
 
 ---
@@ -529,11 +579,12 @@ New pages: multi-head-attention, positional-encoding
 Level: 0 → 2
 
 ## [2026-04-04] query | What's the difference between attention and memory?
-Filed as: wiki/analyses/attention-vs-memory.md
+Filed as: wiki/areas/ml-architectures/attention-vs-memory.md
 
 ## [2026-04-05] express | Draft: The Case for Attention-Only Architectures
 Type: draft
-Filed: wiki/analyses/attention-only-draft.md
+Parent: project/attention-post
+Filed: wiki/projects/attention-post/attention-only-draft.md
 Sources used: transformer, multi-head-attention, attention-is-all-you-need
 
 ## [2026-04-06] lint | Lint pass
@@ -608,6 +659,74 @@ Note: `git checkout <hash> -- <path>` stages the files but does not commit — a
 
 ---
 
+## Optional tooling: rclone
+
+rclone syncs wiki files to cloud storage. It supports 70+ backends: OneDrive, Google Drive, S3, Backblaze B2, Dropbox, and many more.
+
+Two patterns, pick one:
+
+| Pattern | What rclone syncs | When to choose |
+|---------|------------------|----------------|
+| **Complement to git** | `capture/` only | You use git for `wiki/`; `capture/` holds large binaries that don't belong in git |
+| **Alternative to git** | Entire wiki root | You want simple backup without git; history via cloud provider's built-in versioning |
+
+**rclone vs. git for `wiki/`:** git gives you per-line diff history, structured commits, and true rollback at any granularity. rclone gives you simpler setup and works for any file type, but rollback is limited to point-in-time file versions (available on backends like OneDrive, S3, and GCS with versioning enabled). Use git if history matters; use rclone if backup is enough.
+
+**Install:**
+
+```bash
+# macOS
+brew install rclone
+
+# Debian/Ubuntu
+sudo apt install rclone
+
+# All platforms: see https://rclone.org/install/
+```
+
+**Setup:**
+
+```bash
+rclone config
+```
+
+Follow the interactive prompts for your chosen backend. Name the remote something memorable (e.g. `backup`). Verify access after setup:
+
+```bash
+rclone lsd backup:
+```
+
+**Sync — complement to git (capture/ only):**
+
+```bash
+rclone sync <wiki-root>/capture/ backup:wiki-capture/
+```
+
+Add `capture/` to `.gitignore` so the binaries stay out of the git repo:
+
+```
+# Raw capture files — backed up via rclone, not git
+capture/
+```
+
+**Sync — alternative to git (full wiki root):**
+
+```bash
+rclone sync <wiki-root>/ backup:my-wiki/ --exclude ".git/**"
+```
+
+The `--exclude ".git/**"` flag prevents rclone from touching any existing git metadata if you later decide to add git.
+
+**`sync` vs. `copy`:** `rclone sync` mirrors the source — it adds new files and removes files deleted locally. Use `rclone copy` instead if you want the destination to only grow (never delete).
+
+**Claude's role:** Claude does not run rclone automatically. After an organize, distill, or express pass, Claude may remind:
+
+> "Sync when ready: `rclone sync <wiki-root>/ backup:my-wiki/ --exclude '.git/**'`"
+
+Skip this reminder if the user has automated the sync. When rclone is the only backup mechanism (no git), Claude skips git commit suggestions entirely.
+
+---
+
 ## Optional tooling: Obsidian
 
 These two Obsidian tools integrate cleanly with the `capture/` workflow and are worth
@@ -648,8 +767,7 @@ pass — treat them as supplementary.
 - **Be thorough on cross-references.** A page that isn't linked to is nearly invisible.
 - **Contradictions are first-class citizens.** Don't silently pick a side — mark them
   and let the user decide.
-- **PARA tags reflect the user's current life, not the content.** The same article can
-  be `project` for one person and `resource` for another. When in doubt, ask.
+- **PARA reflects the user's current life, not the content.** The same resource may serve multiple efforts — record those dependencies as forward links on each project/area page. When in doubt about which efforts a resource serves, ask.
 - **Distill before Express.** If asked to express from pages at distill_level 0, suggest
   distilling first — the output will be sharper.
 - **File good answers and outputs back.** Insights and drafts shouldn't disappear into
