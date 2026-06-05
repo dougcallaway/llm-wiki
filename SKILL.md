@@ -556,6 +556,14 @@ Sources used: transformer, multi-head-attention, attention-is-all-you-need
 
 ## Optional tooling
 
+### Recommended Claude plugins
+
+| Plugin | Purpose |
+|--------|---------|
+| `document-skills@anthropic-agent-skills` | Reads and writes office document formats (PDF, PPTX, XLSX, etc.). Complements **Capture** (ingest documents directly from office files) and **Express** (produce output as a formatted document). Optional. |
+
+### Setup guides
+
 Setup guides live in separate files — load the relevant one on demand, not on every wiki operation:
 
 | File | When to load |
