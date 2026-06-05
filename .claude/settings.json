@@ -1,0 +1,8 @@
+{
+  "hooks": {
+    "PostToolUse": [{
+      "matcher": "Bash",
+      "hooks": [{"type": "command", "command": "bash .claude/hooks/detect-dep-install.sh"}]
+    }]
+  }
+}
