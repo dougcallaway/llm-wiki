@@ -118,12 +118,13 @@ People and companies are entities (a page + a link), not tags.
 
 ## Writing style
 <!-- Set during Calibrate. Until then, Express writes in a neutral default voice. -->
-Profiles: <none yet>
+Base: <none yet>
 <!-- Once calibrated, e.g.:
-Profile: wiki/style.md
-or, for named voices:
+Base: wiki/style.md          # shared rules; used alone if only one voice is needed
+Named overrides (carry only the delta from the base):
 - wiki/style/blog.md   → draft
 - wiki/style/formal.md → report, decision
+Express composes base + named (named wins on conflicts; "do not" rules accumulate).
 Applies to Express outputs and outward-facing filed answers only — never internal pages.
 -->
 
@@ -335,12 +336,13 @@ triggered by "summarize what I know about X" — that's a Query.
    tagged with related topics. If key pages are at `distill_level` 0, suggest distilling first.
 
 3. **Apply the user's voice, then draft.** If a voice profile exists (see **Calibrate**),
-   load the one matching the output type — `CLAUDE.md`'s `## Writing style` maps types to
-   profiles; fall back to the default profile. Draft the output in that voice, drawing on
-   wiki content with inline citations to source pages. Do not reproduce wiki content
-   verbatim — synthesize and rewrite for the target format. Before finalizing, run the draft
-   against the profile's **Hard rules** checklist and fix any violations. If no profile
-   exists, write in a clean neutral voice, then offer once: *"Want me to calibrate a
+   load the base `wiki/style.md`, then layer the named profile matching the output type on
+   top — `CLAUDE.md`'s `## Writing style` maps types to profiles; the named profile wins on
+   conflicts, and "do not" rules from both apply. Draft the output in that composed voice,
+   drawing on wiki content with inline citations to source pages. Do not reproduce wiki
+   content verbatim — synthesize and rewrite for the target format. Before finalizing, run
+   the draft against the **union of both files' Hard rules** and fix any violations. If no
+   profile exists, write in a clean neutral voice, then offer once: *"Want me to calibrate a
    writing-style profile so future drafts sound like you?"*
 
 4. **Determine the filing location.** Every analysis belongs to exactly one area or project — the one
@@ -438,9 +440,26 @@ Triggered by: "make this sound like me", "set up my writing style", "learn my vo
 "calibrate my style", or Claude offering after an uncalibrated Express output.
 
 Builds and refines a **voice profile** that Express applies to outputs so they sound like
-the user. The profile lives at `wiki/style.md` (single voice) or `wiki/style/<name>.md`
-(named voices, e.g. `blog`, `formal`), and is registered in `CLAUDE.md`'s `## Writing style`
-section. Profiles affect **outputs only** — never internal entity/concept/source pages.
+the user. Profiles affect **outputs only** — never internal entity/concept/source pages.
+
+**Base + overrides.** Shared preferences live once in a base profile; named voices carry only
+what differs:
+- **`wiki/style.md`** — the base layer. Preferences true of everything the user writes
+  (banned words, formatting rules, general diction). If a wiki only ever needs one voice,
+  this is the whole profile.
+- **`wiki/style/<name>.md`** — named voices (e.g. `blog`, `formal`) that carry **only the
+  delta** from the base: the tone, rhythm, or structure that differs in that context. They
+  do not repeat base rules.
+
+Express composes them: load `style.md`, then layer the selected named profile on top, with
+the named profile winning on conflicts. **"Do not" rules accumulate** — base prohibitions
+always apply, and a named profile may add more (the enforced **Hard rules** checklist is the
+union of both). A named profile cannot silently drop a base prohibition; keep a rule in the
+base only if it is genuinely universal, and put context-specific bans in the named profile.
+If a named voice truly needs to lift a base ban, state it explicitly, e.g.
+`Allowed (overrides base): contractions`.
+
+Profiles are registered in `CLAUDE.md`'s `## Writing style` section.
 
 **Flow:**
 
@@ -454,7 +473,9 @@ section. Profiles affect **outputs only** — never internal entity/concept/sour
 
 2. **Write the profile** using the template below. Make every entry a concrete, checkable
    directive — not a vague adjective like "professional". The **Hard rules** section is the
-   checklist Express runs each draft against.
+   checklist Express runs each draft against. When adding a named voice, put a preference in
+   the base (`style.md`) only if it should hold everywhere; otherwise put it in the named
+   profile so the base stays universal and the named file stays a small delta.
 
 3. **Register it** in `CLAUDE.md`'s `## Writing style` section: list the profile, and for
    named profiles which output type maps to it (e.g. `draft → blog`, `report → formal`).
@@ -475,10 +496,14 @@ section. Profiles affect **outputs only** — never internal entity/concept/sour
 fold it back in — *"You cut every em-dash and tightened the intro — add those to your style
 profile?"* The voice sharpens with use.
 
-**Profile template** (`wiki/style.md`):
+**Profile template.** The base `wiki/style.md` uses all sections below. A named profile
+(`wiki/style/<name>.md`) includes **only the sections it overrides or adds** — omit the rest;
+they're inherited from the base.
 ```markdown
 # Writing Style — <profile name>
 _Calibrated <date> from <samples | description>._
+<!-- Named profile only: list what it changes, e.g. "Overrides base rhythm; adds one Hard rule." -->
+<!-- Named profile only, to lift a base ban: "Allowed (overrides base): contractions" -->
 
 ## Voice & tone
 - <e.g. First person, direct. Confident without hedging — "I think maybe" → "I'd".>
