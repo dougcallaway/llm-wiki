@@ -17,7 +17,7 @@ A Claude Code skill that maintains a persistent personal knowledge base using
 | **D**istill | `distill` | Progressively compress pages to their essential insights |
 | **E**xpress | `express` | Produce a finished artifact — draft, report, or decision doc |
 
-Two utility operations sit outside CODE: `query` (retrieve and synthesize from the wiki) and `lint` (health-check for orphans, contradictions, and dead links).
+Three utility operations sit outside CODE: `query` (retrieve and synthesize from the wiki), `calibrate` (learn the user's writing voice so `express` outputs sound like them), and `lint` (health-check for orphans, contradictions, and dead links).
 
 The user's job: capture, direct, and express. Claude's job: everything else.
 
@@ -33,6 +33,7 @@ Each wiki has a `CLAUDE.md` at its root that Claude reads on every session. It d
 - **Cross-references compound value.** A page with no inbound links is nearly invisible. Be thorough on connections, not just summaries.
 - **Distillation is lossy by design.** The goal is resonance, not completeness — keep what you'd want to rediscover six months from now.
 - **Outputs are first-class wiki citizens.** A good draft or analysis belongs in the knowledge base, not just in chat history.
+- **Voice is for outputs only.** `calibrate` teaches Claude your writing voice and `express` applies it — but internal pages stay in a neutral reference voice, so the knowledge base remains a clean substrate.
 
 ## Install
 

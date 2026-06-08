@@ -116,6 +116,17 @@ People and companies are entities (a page + a link), not tags.
 ### vendor/
 ### process/
 
+## Writing style
+<!-- Set during Calibrate. Until then, Express writes in a neutral default voice. -->
+Profiles: <none yet>
+<!-- Once calibrated, e.g.:
+Profile: wiki/style.md
+or, for named voices:
+- wiki/style/blog.md   → draft
+- wiki/style/formal.md → report, decision
+Applies to Express outputs and outward-facing filed answers only — never internal pages.
+-->
+
 ## Backup
 <!-- omit this section if no backup is configured -->
 Pattern: <binaries-only | full-repo | rclone-only>
@@ -323,8 +334,14 @@ triggered by "summarize what I know about X" — that's a Query.
    high `distill_level` (already refined) and pages in the relevant project/area folder or
    tagged with related topics. If key pages are at `distill_level` 0, suggest distilling first.
 
-3. **Draft the output,** drawing on wiki content with inline citations to source pages.
-   Do not reproduce wiki content verbatim — synthesize and rewrite for the target format.
+3. **Apply the user's voice, then draft.** If a voice profile exists (see **Calibrate**),
+   load the one matching the output type — `CLAUDE.md`'s `## Writing style` maps types to
+   profiles; fall back to the default profile. Draft the output in that voice, drawing on
+   wiki content with inline citations to source pages. Do not reproduce wiki content
+   verbatim — synthesize and rewrite for the target format. Before finalizing, run the draft
+   against the profile's **Hard rules** checklist and fix any violations. If no profile
+   exists, write in a clean neutral voice, then offer once: *"Want me to calibrate a
+   writing-style profile so future drafts sound like you?"*
 
 4. **Determine the filing location.** Every analysis belongs to exactly one area or project — the one
    it serves. Infer it from context (the user's active project, the folder/topics of the source
@@ -403,13 +420,90 @@ The key signal is retrieval and synthesis in chat, not producing a finished arti
    > "Want me to save this as a wiki page? It would live inside its parent area/project,
    > e.g. `wiki/projects/<name>/<slug>.md`."
    If yes, write it as an analysis (namespaced topic tags, file it inside the owning
-   project/area's folder per the Express rules) and update the index + log.
+   project/area's folder per the Express rules) and update the index + log. If the answer is
+   outward-facing (something the user will share or send), apply the voice profile per
+   Express step 3.
 
    **If the answer was filed and `.git` exists in the wiki root**, suggest: `git add . && git commit -m "express: <Answer Title>"`. Wait for user confirmation before running. (Use `express:` since a filed query answer is conceptually an express output.)
 
 **Output formats:** Prose by default. Tables for comparisons. Lists for timelines.
 If the answer is dense enough to be reused, offer to write it as a full wiki page —
 at that point it's become an Express output.
+
+---
+
+### Calibrate
+
+Triggered by: "make this sound like me", "set up my writing style", "learn my voice",
+"calibrate my style", or Claude offering after an uncalibrated Express output.
+
+Builds and refines a **voice profile** that Express applies to outputs so they sound like
+the user. The profile lives at `wiki/style.md` (single voice) or `wiki/style/<name>.md`
+(named voices, e.g. `blog`, `formal`), and is registered in `CLAUDE.md`'s `## Writing style`
+section. Profiles affect **outputs only** — never internal entity/concept/source pages.
+
+**Flow:**
+
+1. **Pick the input mode:**
+   - **From samples (preferred).** Ask the user to drop 2–3 representative samples (past
+     posts, emails, a doc they like) into `capture/`. Read them and extract recurring
+     patterns: diction, sentence rhythm, structural habits, signature phrases, and — just as
+     important — what they avoid.
+   - **From description.** The user describes their preferences directly; Claude drafts the
+     profile from that.
+
+2. **Write the profile** using the template below. Make every entry a concrete, checkable
+   directive — not a vague adjective like "professional". The **Hard rules** section is the
+   checklist Express runs each draft against.
+
+3. **Register it** in `CLAUDE.md`'s `## Writing style` section: list the profile, and for
+   named profiles which output type maps to it (e.g. `draft → blog`, `report → formal`).
+
+4. **Confirm with a quick test.** Offer to rewrite a short passage — a sample the user gave,
+   or a paragraph from a recent Express output — in the new voice so they can sanction it
+   before it's used for real.
+
+5. **Append to log:**
+   ```
+   ## [<date>] calibrate | <profile name>
+   Source: samples | description
+   ```
+
+   **If `.git` exists in the wiki root**, suggest: `git add . && git commit -m "calibrate: <profile name>"`. Wait for user confirmation before running.
+
+**Refining over time:** When the user edits an Express draft, notice the pattern and offer to
+fold it back in — *"You cut every em-dash and tightened the intro — add those to your style
+profile?"* The voice sharpens with use.
+
+**Profile template** (`wiki/style.md`):
+```markdown
+# Writing Style — <profile name>
+_Calibrated <date> from <samples | description>._
+
+## Voice & tone
+- <e.g. First person, direct. Confident without hedging — "I think maybe" → "I'd".>
+
+## Rhythm
+- <e.g. Short sentences. Vary length deliberately; one long sentence per paragraph max.>
+
+## Diction
+- Prefer: <plain Anglo-Saxon words, concrete nouns, ...>
+- Banned: <"leverage", "utilize", "delve", "in today's landscape", ...>
+
+## Structure
+- <e.g. Lead with the conclusion. No throat-clearing intros.>
+
+## Formatting
+- <e.g. No em-dashes. Bold sparingly. Oxford comma.>
+
+## Examples
+- Instead of: "<stiff version>" → "<their version>"
+
+## Hard rules (self-check before finalizing any output)
+- [ ] <No banned words>
+- [ ] <Opens with the point>
+- [ ] <No em-dashes>
+```
 
 ---
 
@@ -530,7 +624,7 @@ _Analyses live inside their parent area/project; grouped here by parent for disc
 ## log.md format
 
 Append-only. Each entry starts with `## [YYYY-MM-DD]` so it's grep-parseable.
-Operation types: `init`, `capture`, `organize`, `distill`, `express`, `query`, `lint`.
+Operation types: `init`, `capture`, `organize`, `distill`, `express`, `query`, `calibrate`, `lint`.
 
 ```markdown
 # Log
@@ -591,6 +685,9 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 - **Distillation is lossy by design.** Optimize for resonance, not completeness — keep what the user would want to rediscover six months from now.
 - **Distill before Express.** If asked to express from pages at distill_level 0, suggest
   distilling first — the output will be sharper.
+- **Voice is for outputs only.** Apply the user's writing-style profile to Express artifacts
+  (and outward-facing filed answers) — never to internal entity/concept/source pages, which
+  stay in a neutral reference voice.
 - **File good answers and outputs back.** Insights and drafts shouldn't disappear into
   chat history — they're wiki pages now.
 - **Keep the index lean.** One-line summaries only. Detail lives in the pages.
