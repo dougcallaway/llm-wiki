@@ -58,4 +58,4 @@ git commit -m "rollback: transformer to <commit-hash>"
 
 Note: `git checkout <hash> -- <path>` stages the files but does not commit — always follow it with a commit to record the rollback in history.
 
-**Claude's role:** When `.git` exists in the wiki root, Claude suggests a commit after each organize, distill, and express operation and waits for explicit confirmation before running it. Claude never commits without confirmation, and skips all git behavior when no `.git` exists in the wiki root.
+**Claude's role:** When `.git` exists in the wiki root, Claude suggests a commit after each organize, distill, express, and calibrate operation and waits for explicit confirmation before running it. Claude never commits without confirmation, and skips all git behavior when no `.git` exists in the wiki root.

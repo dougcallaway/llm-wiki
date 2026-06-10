@@ -92,4 +92,4 @@ Replace `<source-path>`, `<remote>`, and `<destination-path>` with the values fr
 
 Note: `.git/hooks/` is not tracked by git. If you restore the repo from rclone and need to recreate the hook, re-run the commands above (or ask Claude — the command is in `CLAUDE.md`).
 
-**Claude's role:** Claude does not run rclone automatically. If `.git/hooks/post-commit` exists, skip sync reminders — the hook fires on every commit. If no hook exists but `CLAUDE.md` contains a `## Backup` section, remind the user to sync after each organize, distill, or express pass using the exact command from `CLAUDE.md`. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.
+**Claude's role:** Claude does not run rclone automatically. If `.git/hooks/post-commit` exists, skip sync reminders — the hook fires on every commit. If no hook exists but `CLAUDE.md` contains a `## Backup` section, remind the user to sync after each organize, distill, express, or calibrate pass using the exact command from `CLAUDE.md`. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.

@@ -692,7 +692,7 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 | `setup-obsidian.md` | User mentions Obsidian, web clipping, or asks about the clipper workflow |
 
 **Operational reminders (no file load needed):**
-- If `.git` exists: suggest a commit after organize, distill, and express — wait for confirmation
+- If `.git` exists: suggest a commit after organize, distill, express, and calibrate — wait for confirmation
 - If `.git/hooks/post-commit` exists: skip rclone sync reminders — the hook fires automatically
 - If no hook but `CLAUDE.md` has a `## Backup` section: remind the user to sync after each operation using the exact command from `CLAUDE.md`
 - If `rclone-only` pattern (no git): skip git commit suggestions entirely
