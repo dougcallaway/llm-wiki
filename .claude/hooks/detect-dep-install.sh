@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
 # PostToolUse hook — detects package installs in devcontainer projects.
 # Receives a JSON blob on stdin with tool_input.command; writes a reminder
 # to stdout, which Claude Code injects into the conversation context.
