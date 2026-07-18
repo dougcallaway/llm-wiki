@@ -1,0 +1,6 @@
+# Normalize line endings so cross-OS, cross-editor contributions don't
+# produce whole-file phantom diffs. Text is stored LF in the repo and
+# checked out LF everywhere; shell scripts are pinned LF so a Windows
+# checkout can never break their shebang.
+* text=auto eol=lf
+*.sh text eol=lf
