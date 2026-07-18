@@ -88,8 +88,8 @@ EOF
 chmod +x <wiki-root>/.git/hooks/post-commit
 ```
 
-Replace `<source-path>`, `<remote>`, and `<destination-path>` with the values from `CLAUDE.md`'s `## Backup` section. The `command -v` guard makes the hook a no-op if rclone is not installed, so it never blocks a commit.
+Replace `<source-path>`, `<remote>`, and `<destination-path>` with the values from `schema.md`'s `## Backup` section. The `command -v` guard makes the hook a no-op if rclone is not installed, so it never blocks a commit.
 
-Note: `.git/hooks/` is not tracked by git. If you restore the repo from rclone and need to recreate the hook, re-run the commands above (or ask Claude — the command is in `CLAUDE.md`).
+Note: `.git/hooks/` is not tracked by git. If you restore the repo from rclone and need to recreate the hook, re-run the commands above (or ask the agent — the command is in `schema.md`).
 
-**Claude's role:** Claude does not run rclone automatically. If `.git/hooks/post-commit` exists, skip sync reminders — the hook fires on every commit. If no hook exists but `CLAUDE.md` contains a `## Backup` section, remind the user to sync after each organize, distill, express, or calibrate pass using the exact command from `CLAUDE.md`. When the pattern is `rclone-only` (no git), Claude skips git commit suggestions entirely.
+**The agent's role:** The agent does not run rclone automatically. If `.git/hooks/post-commit` exists, skip sync reminders — the hook fires on every commit. If no hook exists but `schema.md` contains a `## Backup` section, remind the user to sync after each organize, distill, express, or calibrate pass using the exact command from `schema.md`. When the pattern is `rclone-only` (no git), the agent skips git commit suggestions entirely.

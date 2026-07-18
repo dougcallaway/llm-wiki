@@ -1,7 +1,7 @@
 ---
 name: llm-wiki
 description: >
-  Maintains a persistent, Claude-owned personal knowledge base (wiki) on the local
+  Maintains a persistent, agent-owned personal knowledge base (wiki) on the local
   filesystem using Karpathy's LLM Wiki pattern and Forte's PARA and CODE methods. Trigger when
   the user wants to build or query a knowledge base, capture notes or sources, or produce
   output from accumulated knowledge. Key phrases: "my wiki", "add this to my wiki",
@@ -10,7 +10,9 @@ description: >
 
 # LLM Wiki Skill
 
-A Claude-maintained personal knowledge base. Claude does all the writing and bookkeeping; the user does the sourcing and thinking. See README.md for conceptual background.
+An agent-maintained personal knowledge base. The agent does all the writing and bookkeeping; the user does the sourcing and thinking. See README.md for conceptual background.
+
+Throughout this document, **"the agent"** means whichever AI agent is running this skill. Claude Code is the tested reference; any Agent Skills–compatible tool that can read and write files should work.
 
 ---
 
@@ -20,7 +22,7 @@ A Claude-maintained personal knowledge base. Claude does all the writing and boo
 <wiki-root>/
 ├── capture/           # All incoming content — quick captures and source documents
 │   └── assets/        # Locally downloaded images
-├── wiki/              # Claude-owned markdown pages
+├── wiki/              # agent-owned markdown pages
 │   ├── index.md       # Content catalog — read first on every query
 │   ├── log.md         # Append-only chronological record
 │   ├── overview.md    # High-level synthesis of the whole wiki
@@ -28,7 +30,7 @@ A Claude-maintained personal knowledge base. Claude does all the writing and boo
 │   ├── areas/         # Ongoing responsibilities
 │   ├── resources/     # Shared reference-document pool
 │   └── archive/       # Inactive projects/areas (created on demand)
-└── CLAUDE.md          # The schema — wiki conventions and domain config
+└── schema.md          # The schema — wiki conventions and domain config
 ```
 
 ### Organizing model
@@ -38,11 +40,11 @@ Three orthogonal axes make the wiki easy to browse and query for both humans and
 |------|-----------|
 | **Location** | **PARA bucket** (project/area/resource/archive) — the directory the page lives in |
 | **Links** | **Cross-references** from effort pages (projects/areas) to the resources they depend on |
-| **Tags** | **Namespaced tags** (e.g. `technology/x`, `vendor/y`) drawn from `CLAUDE.md`'s `## Tag vocabulary` |
+| **Tags** | **Namespaced tags** (e.g. `technology/x`, `vendor/y`) drawn from `schema.md`'s `## Tag vocabulary` |
 
-Analyses and member pages live **inside** their owning project/area folder. `CLAUDE.md` is authoritative on all conventions.
+Analyses and member pages live **inside** their owning project/area folder. `schema.md` is authoritative on all conventions.
 
-**Claude owns everything in `wiki/`. Claude never modifies `capture/`.**
+**The agent owns everything in `wiki/`. The agent never modifies `capture/`.**
 
 `capture/` holds two kinds of content:
 - **Quick captures** — timestamped notes/links/quotes dropped in without processing, named `<timestamp>-<slug>.md`
@@ -54,11 +56,14 @@ Both are immutable once written.
 
 ## Startup: finding or creating a wiki
 
-When the user invokes this skill, Claude should:
+When the user invokes this skill, the agent should:
 
-1. **Locate the wiki root.** Check if a `CLAUDE.md` or `wiki/index.md` exists in the
-   current directory or a parent. If found, that's the wiki root — read `CLAUDE.md`
-   and `wiki/index.md` to orient.
+1. **Locate the wiki root.** Check if a `schema.md` or `wiki/index.md` exists in the
+   current directory or a parent. If found, that's the wiki root — read `schema.md`
+   and `wiki/index.md` to orient. **Legacy fallback:** a wiki created with an earlier
+   version names its schema file `CLAUDE.md`. If `schema.md` is absent but `CLAUDE.md`
+   exists at the root, use `CLAUDE.md` as the schema and offer once to rename it to
+   `schema.md` (an ordinary file any agent reads, not just Claude Code).
 
 2. **If no wiki exists,** ask the user:
    - What topic/domain is this wiki for?
@@ -77,10 +82,10 @@ When creating a fresh wiki:
 mkdir -p <root>/capture/assets <root>/wiki
 ```
 
-Create `<root>/CLAUDE.md` using the following template, filled in with the user's domain details:
+Create `<root>/schema.md` using the following template, filled in with the user's domain details:
 
 ```markdown
-# CLAUDE.md — <Wiki Name>
+# <Wiki Name> — Wiki Schema
 
 ## Domain
 <One sentence describing what this wiki is for and who it serves.>
@@ -167,7 +172,7 @@ Finally, check whether the wiki root is already inside a parent git repo. **If i
 
 Then ask about cloud backup: *"Do you want to back up this wiki to cloud storage via rclone? Options: (1) binaries only — rclone covers `capture/`, git covers `wiki/`, push `wiki/` to a remote like GitHub; (2) full repo — rclone syncs everything including `.git/`, no GitHub needed (good for single-user wikis); (3) rclone only — no git, rclone is your only backup. Or skip for now."*
 
-If the user chooses a pattern, read `setup-rclone.md`, ask for the rclone remote name and destination path, then add a `## Backup` section to `CLAUDE.md`:
+If the user chooses a pattern, read `setup-rclone.md`, ask for the rclone remote name and destination path, then add a `## Backup` section to `schema.md`:
 ```
 ## Backup
 Pattern: <binaries-only | full-repo | rclone-only>
@@ -220,14 +225,14 @@ directly with the intent to integrate it.
 
 3. **Read `wiki/index.md`** to understand what already exists.
 
-4. **Assign topic tags + note which efforts it serves.** Scan `CLAUDE.md`'s `## Tag vocabulary`
-   for existing namespaced tags. Choose the topics that fit, adding new ones to `CLAUDE.md` first.
+4. **Assign topic tags + note which efforts it serves.** Scan `schema.md`'s `## Tag vocabulary`
+   for existing namespaced tags. Choose the topics that fit, adding new ones to `schema.md` first.
    Separately, note which projects/areas the document serves — record that as forward links on
    those project/area pages (step 6), not as a tag. Confirm briefly if unclear:
    > "Topics `vendor/tektelic` + `technology/lorawan`; serves `project/migration`. OK?"
 
 5. **Write a source summary page** in the reference pool — `wiki/resources/<slug>.md`
-   (`CLAUDE.md` is authoritative on the pool's folder name and conventions):
+   (`schema.md` is authoritative on the pool's folder name and conventions):
    ```markdown
    ---
    type: source
@@ -274,16 +279,16 @@ directly with the intent to integrate it.
 ### Distill  _(D in CODE)_
 
 Triggered by: "distill this page", "distill my notes on X", "progressive summary",
-or automatically suggested by Claude when a page reaches 5+ sources. **Not** triggered
+or automatically suggested by the agent when a page reaches 5+ sources. **Not** triggered
 by questions like "what are the key ideas on X" — that's a Query.
 
 Forte's progressive summarization: each pass bold-highlights the most important
 sentences, then a further pass extracts those into a short executive summary at the
-top. Claude applies this to wiki pages.
+top. The agent applies this to wiki pages.
 
 **Flow:**
 
-1. **Identify pages to distill.** Either the user names a page/topic, or Claude
+1. **Identify pages to distill.** Either the user names a page/topic, or the agent
    suggests candidates: pages with high `source_count`, pages last distilled long ago,
    or pages the user is about to use for Express.
 
@@ -329,7 +334,7 @@ triggered by "summarize what I know about X" — that's a Query.
    - **Decision doc** (options + recommendation) — problem statement, options,
      criteria, recommendation, risks
 
-   Claude picks the most fitting type based on context and confirms briefly.
+   The agent picks the most fitting type based on context and confirms briefly.
 
 2. **Read `wiki/index.md`** and pull all relevant pages — prioritize pages with
    high `distill_level` (already refined) and pages in the relevant project/area folder or
@@ -337,7 +342,7 @@ triggered by "summarize what I know about X" — that's a Query.
 
 3. **Apply the user's voice, then draft.** If a voice profile exists (see **Calibrate**),
    load the base `wiki/style.md`, then layer the named profile matching the output type on
-   top — `CLAUDE.md`'s `## Writing style` maps types to profiles; the named profile wins on
+   top — `schema.md`'s `## Writing style` maps types to profiles; the named profile wins on
    conflicts, and "do not" rules from both apply. Draft the output in that composed voice,
    drawing on wiki content with inline citations to source pages. Do not reproduce wiki
    content verbatim — synthesize and rewrite for the target format. Before finalizing, run
@@ -353,7 +358,7 @@ triggered by "summarize what I know about X" — that's a Query.
 5. **For drafts/reports:** write the output **inside that project/area's folder** alongside its
    `index.md` (e.g. `wiki/projects/<name>/<slug>.md`, `wiki/areas/<name>/<slug>.md`),
    and give it namespaced topic tags. Promote a flat area/project page to a folder if needed.
-   `CLAUDE.md` is authoritative on placement. Then update index + log.
+   `schema.md` is authoritative on placement. Then update index + log.
 
 6. **For decision docs:** use this structure:
    ```markdown
@@ -437,7 +442,7 @@ at that point it's become an Express output.
 ### Calibrate
 
 Triggered by: "make this sound like me", "set up my writing style", "learn my voice",
-"calibrate my style", or Claude offering after an uncalibrated Express output.
+"calibrate my style", or the agent offering after an uncalibrated Express output.
 
 Builds and refines a **voice profile** that Express applies to outputs so they sound like
 the user. Profiles affect **outputs only** — never internal entity/concept/source pages.
@@ -459,7 +464,7 @@ base only if it is genuinely universal, and put context-specific bans in the nam
 If a named voice truly needs to lift a base ban, state it explicitly, e.g.
 `Allowed (overrides base): contractions`.
 
-Profiles are registered in `CLAUDE.md`'s `## Writing style` section.
+Profiles are registered in `schema.md`'s `## Writing style` section.
 
 **Flow:**
 
@@ -468,7 +473,7 @@ Profiles are registered in `CLAUDE.md`'s `## Writing style` section.
      posts, emails, a doc they like) into `capture/`. Read them and extract recurring
      patterns: diction, sentence rhythm, structural habits, signature phrases, and — just as
      important — what they avoid.
-   - **From description.** The user describes their preferences directly; Claude drafts the
+   - **From description.** The user describes their preferences directly; the agent drafts the
      profile from that.
 
 2. **Write the profile** using the template below. Make every entry a concrete, checkable
@@ -477,7 +482,7 @@ Profiles are registered in `CLAUDE.md`'s `## Writing style` section.
    the base (`style.md`) only if it should hold everywhere; otherwise put it in the named
    profile so the base stays universal and the named file stays a small delta.
 
-3. **Register it** in `CLAUDE.md`'s `## Writing style` section: list the profile, and for
+3. **Register it** in `schema.md`'s `## Writing style` section: list the profile, and for
    named profiles which output type maps to it (e.g. `draft → blog`, `report → formal`).
 
 4. **Confirm with a quick test.** Offer to rewrite a short passage — a sample the user gave,
@@ -594,7 +599,7 @@ last_distilled: <date>  # omit if never distilled
 ---
 ```
 
-`tags` carry **namespaced topic keywords only**, drawn from `CLAUDE.md`'s `## Tag vocabulary`
+`tags` carry **namespaced topic keywords only**, drawn from `schema.md`'s `## Tag vocabulary`
 (e.g. `technology/postgres`, `vendor/acme`, `compliance/soc2`, `process/hiring`).
 
 ### Cross-references
@@ -675,11 +680,9 @@ Sources used: transformer, multi-head-attention, attention-is-all-you-need
 
 ## Optional tooling
 
-### Recommended Claude plugins
+### Office document support (optional)
 
-| Plugin | Purpose |
-|--------|---------|
-| `document-skills@anthropic-agent-skills` | Reads and writes office document formats (PDF, PPTX, XLSX, etc.). Complements **Capture** (ingest documents directly from office files) and **Express** (produce output as a formatted document). Optional. |
+To ingest office files (PDF, PPTX, XLSX, etc.) during **Capture** or produce a formatted document during **Express**, add whatever document-reading capability your agent offers. On **Claude Code**, that's the `document-skills@anthropic-agent-skills` plugin. Other agents have their own equivalents — this skill needs only plain markdown, so office support is a convenience, never a requirement.
 
 ### Setup guides
 
@@ -694,14 +697,14 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 **Operational reminders (no file load needed):**
 - If `.git` exists: suggest a commit after organize, distill, express, and calibrate — wait for confirmation
 - If `.git/hooks/post-commit` exists: skip rclone sync reminders — the hook fires automatically
-- If no hook but `CLAUDE.md` has a `## Backup` section: remind the user to sync after each operation using the exact command from `CLAUDE.md`
+- If no hook but `schema.md` has a `## Backup` section: remind the user to sync after each operation using the exact command from `schema.md`
 - If `rclone-only` pattern (no git): skip git commit suggestions entirely
 
 ---
 
 ## Behavioral principles
 
-- **Claude never modifies `capture/`**. That's the source of truth — both quick captures and source documents live there, immutable.
+- **The agent never modifies `capture/`**. That's the source of truth — both quick captures and source documents live there, immutable.
 - **Capture is frictionless.** Inbox items require zero processing — save first, think later.
 - **Be thorough on cross-references.** A page that isn't linked to is nearly invisible.
 - **Contradictions are first-class citizens.** Don't silently pick a side — mark them
@@ -717,7 +720,7 @@ Setup guides live in separate files — load the relevant one on demand, not on 
   chat history — they're wiki pages now.
 - **Keep the index lean.** One-line summaries only. Detail lives in the pages.
 - **The log is append-only.** Never edit past entries.
-- **When in doubt about page structure, consult `CLAUDE.md`** — that's the domain
+- **When in doubt about page structure, consult `schema.md`** — that's the domain
   configuration for this specific wiki.
 - **Prefer updating existing pages over creating new ones** unless the topic genuinely
   warrants its own page (recurring, substantial, cross-referenced by multiple sources).
