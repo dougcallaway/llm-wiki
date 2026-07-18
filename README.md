@@ -87,7 +87,7 @@ MIT — see [LICENSE](LICENSE). Use it, fork it, adapt it. Attribution is apprec
 Pin to a released version:
 
 ```bash
-git -C ~/.claude/skills/llm-wiki checkout v0.1.0
+git -C ~/.claude/skills/llm-wiki checkout v0.2.0
 ```
 
 Update to the latest:
