@@ -1,5 +1,5 @@
 ---
-name: llm-wiki
+name: wikismith
 description: >
   Maintains a persistent personal knowledge base (wiki) on the local
   filesystem using Karpathy's LLM Wiki pattern and Forte's PARA and CODE methods. Trigger when
@@ -8,7 +8,7 @@ description: >
   "capture this", "distill", "what do I know about X", "write a draft from my notes".
 ---
 
-# LLM Wiki Skill
+# Wikismith
 
 An agent-maintained personal knowledge base. The agent does all the writing and bookkeeping; the user does the sourcing and thinking. See README.md for conceptual background.
 

@@ -1,4 +1,4 @@
-# llm-wiki
+# Wikismith
 
 **A knowledge base your AI agent builds and maintains for you — plain markdown files that get richer every time you add a source.**
 
@@ -53,10 +53,10 @@ Each wiki has a `schema.md` at its root that the agent reads at the start of eve
 **Claude Code** — clone into your personal skills directory:
 
 ```bash
-git clone https://github.com/dougcallaway/llm-wiki ~/.claude/skills/llm-wiki
+git clone https://github.com/dougcallaway/wikismith ~/.claude/skills/wikismith
 ```
 
-The skill is then available as `/llm-wiki` in any Claude Code session.
+The skill is then available as `/wikismith` in any Claude Code session.
 
 **Other agents** — Codex, Gemini CLI, Cursor, and other tools that support the `SKILL.md` standard load skills from their own skills directory. Clone this repo there (check your tool's skills documentation for the exact path). Everything the skill does is plain file reading and writing, so no Claude-specific features are required.
 
@@ -69,7 +69,7 @@ The wiki is just markdown files and folders, so it opens in Obsidian, VS Code, o
 
 ### Works with Verdondo
 
-llm-wiki's page format is the wiki format of **[Verdondo](https://github.com/verdondo)**, a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard. A wiki you build with this skill — relative-linked markdown pages with frontmatter — is meant to be readable by Verdondo as it matures. Verdondo keeps its own view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
+wikismith's page format is the wiki format of **[Verdondo](https://github.com/verdondo)**, a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard. A wiki you build with this skill — relative-linked markdown pages with frontmatter — is meant to be readable by Verdondo as it matures. Verdondo keeps its own view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
 
 ## Credits
 
@@ -89,11 +89,11 @@ MIT — see [LICENSE](LICENSE). Use it, fork it, adapt it. Attribution is apprec
 Pin to a released version:
 
 ```bash
-git -C ~/.claude/skills/llm-wiki checkout v0.2.0
+git -C ~/.claude/skills/wikismith checkout v0.2.0
 ```
 
 Update to the latest:
 
 ```bash
-git -C ~/.claude/skills/llm-wiki checkout main && git -C ~/.claude/skills/llm-wiki pull
+git -C ~/.claude/skills/wikismith checkout main && git -C ~/.claude/skills/wikismith pull
 ```
