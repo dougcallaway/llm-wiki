@@ -62,7 +62,10 @@ When the user invokes this skill, the agent should:
 
 1. **Locate the wiki root.** Check if a `schema.md` or `wiki/index.md` exists in the
    current directory or a parent. If found, that's the wiki root — read `schema.md`
-   and `wiki/index.md` to orient. **Legacy fallback:** a wiki created with an earlier
+   and `wiki/index.md` to orient. **Never the skill's own repository:** the folder
+   holding this `SKILL.md` (the repo the skill was installed from) is not a wiki
+   root, and its files are not a schema — if invoked there, say so and ask where
+   the wiki should live. **Legacy fallback:** a wiki created with an earlier
    version names its schema file `CLAUDE.md`. If `schema.md` is absent but `CLAUDE.md`
    exists at the root, use `CLAUDE.md` as the schema and offer once to rename it to
    `schema.md` (an ordinary file any agent reads, not just Claude Code).

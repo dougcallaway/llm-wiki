@@ -81,7 +81,7 @@ The wiki is just markdown files and folders, so it opens in Obsidian, VS Code, o
 
 ### Works with Verdondo
 
-A wiki you build with this skill is made of what **[Verdondo](https://github.com/verdondo)** — a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard — is built to read: plain markdown pages with frontmatter, connected by relative links, organized in folders. Each wiki defines its own page schema (yours lives in `schema.md`), and Verdondo reads the format without caring which schema produced it — verified against Verdondo's wiki backend. Verdondo keeps its view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
+A wiki you build with this skill is made of what **[Verdondo](https://github.com/verdondo)** — a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard — is built to read: plain markdown pages with frontmatter (the small info block at the top of a page), connected by relative links, organized in folders. Each wiki defines its own page schema (yours lives in `schema.md`), and Verdondo reads the format without caring which schema produced it — verified against Verdondo's wiki backend. Verdondo keeps its view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
 
 ## Getting help
 
