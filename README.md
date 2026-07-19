@@ -116,7 +116,7 @@ git -C ~/.claude/skills/wikismith checkout main && git -C ~/.claude/skills/wikis
 Prefer changes only when you choose them? Pin to a released version:
 
 ```bash
-git -C ~/.claude/skills/wikismith checkout v1.0.0
+git -C ~/.claude/skills/wikismith checkout v1.0.1
 ```
 
 New releases appear on the [releases page](https://github.com/dougcallaway/wikismith/releases) with plain-language notes. To hear about them by email: **Watch → Custom → Releases** at the top of this page (needs a free GitHub account).
