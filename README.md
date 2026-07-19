@@ -2,7 +2,7 @@
 
 **A knowledge base your AI agent builds and maintains for you — plain markdown files that get richer every time you add a source.**
 
-You drop in articles, notes, and links. Your agent reads them, files the knowledge into interlinked pages, flags where new sources contradict old ones, and keeps an index so nothing gets lost. Instead of re-reading the same documents every time you have a question, you ask the wiki — and it answers from everything you've ever fed it.
+You drop in articles, notes, and links. Your agent reads them, files the knowledge into interlinked pages, flags where new sources contradict old ones, and keeps an index so nothing gets lost. Instead of re-reading the same documents every time you have a question, you ask your agent — and it answers from everything the wiki holds.
 
 It's an [Agent Skill](https://code.claude.com/docs/en/skills) (the open `SKILL.md` standard), so it works with any AI coding agent that can read and write files in a folder. Claude Code is the tested reference; Codex, Gemini CLI, Cursor, and other Agent Skills–compatible tools should work too (reports welcome — see [Compatibility](#compatibility)).
 
@@ -26,11 +26,11 @@ Two ideas do the work.
 | **C**apture | `capture` | Drop ideas and links into `capture/` without processing |
 | **O**rganize | `organize` | Integrate captures into the wiki; update the pages they touch |
 | **D**istill | `distill` | Progressively compress pages to their essential insights |
-| **E**xpress | `express` | Produce a finished artifact — a draft, report, or decision doc |
+| **E**xpress | `express` | Produce a draft, report, or decision doc that cites its wiki sources — a starting point you finish |
 
-Three utility operations sit outside CODE: `query` (retrieve and synthesize from the wiki), `calibrate` (learn your writing voice so `express` outputs sound like you), and `lint` (health-check for orphan pages, contradictions, and dead links).
+Three utility operations sit outside CODE: `query` (retrieve and synthesize from the wiki), `calibrate` (learn your writing voice so `express` drafts start closer to something you'd keep), and `lint` (a health check for pages nothing links to, contradictions, and dead links).
 
-Your job: capture, direct, and express. The agent's job: everything else.
+Your job: capture, direct, and make the final call. The agent's job: everything else.
 
 ## schema.md — your wiki's schema
 
@@ -40,11 +40,13 @@ Each wiki has a `schema.md` at its root that the agent reads at the start of eve
 
 ## Design principles
 
-- **Capture is frictionless.** `capture/` is a holding area, not the wiki. Drop things in without processing; they sit there until you ask to organize them.
+- **Capture is frictionless.** `capture/` is a holding area, not the wiki. Drop things in without processing; they sit there until you ask to organize them. (You can rename the folder, or point it at one you already use — a web clipper's target, say — in `schema.md`.)
+- **`capture/` is never edited.** Whatever you capture stays exactly as you captured it; only the wiki pages built from it evolve. You can always check a page against its original.
 - **Cross-references compound value.** A page with no inbound links is nearly invisible. Be thorough on connections, not just summaries.
 - **Distillation is lossy by design.** The goal is resonance, not completeness — keep what you'd want to rediscover six months from now.
-- **Outputs are first-class wiki citizens.** A good draft or analysis belongs in the knowledge base, not just in chat history.
-- **Voice is for outputs only.** `calibrate` teaches your agent your writing voice and `express` applies it — but internal pages stay in a neutral reference voice, so the knowledge base stays a clean substrate.
+- **Outputs belong in the wiki.** A good draft or analysis is filed as a page, not left behind in chat history.
+- **Drafts are yours to finish.** `express` assembles a starting draft that cites the wiki pages it drew from; you review, finish, and own what goes out.
+- **Voice is for outputs only.** `calibrate` teaches your agent your writing voice and `express` applies it — but internal pages stay in a plain reference voice, so the wiki itself always reads the same way.
 
 ## Install
 
@@ -67,7 +69,7 @@ The wiki is just markdown files and folders, so it opens in Obsidian, VS Code, o
 
 ### Works with Verdondo
 
-llm-wiki's page format is the wiki format of **[Verdondo](https://github.com/verdondo)**, a visual knowledge tool in development that lets you view and edit a knowledge graph as naturally as drawing on a whiteboard. A wiki you build with this skill — relative-linked markdown pages with frontmatter — is meant to be readable by Verdondo as it matures. Verdondo keeps its own view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
+llm-wiki's page format is the wiki format of **[Verdondo](https://github.com/verdondo)**, a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard. A wiki you build with this skill — relative-linked markdown pages with frontmatter — is meant to be readable by Verdondo as it matures. Verdondo keeps its own view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
 
 ## Credits
 

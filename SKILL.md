@@ -1,7 +1,7 @@
 ---
 name: llm-wiki
 description: >
-  Maintains a persistent, agent-owned personal knowledge base (wiki) on the local
+  Maintains a persistent personal knowledge base (wiki) on the local
   filesystem using Karpathy's LLM Wiki pattern and Forte's PARA and CODE methods. Trigger when
   the user wants to build or query a knowledge base, capture notes or sources, or produce
   output from accumulated knowledge. Key phrases: "my wiki", "add this to my wiki",
@@ -22,7 +22,7 @@ Throughout this document, **"the agent"** means whichever AI agent is running th
 <wiki-root>/
 ├── capture/           # All incoming content — quick captures and source documents
 │   └── assets/        # Locally downloaded images
-├── wiki/              # agent-owned markdown pages
+├── wiki/              # agent-maintained markdown pages
 │   ├── index.md       # Content catalog — read first on every query
 │   ├── log.md         # Append-only chronological record
 │   ├── overview.md    # High-level synthesis of the whole wiki
@@ -44,7 +44,9 @@ Three orthogonal axes make the wiki easy to browse and query for both humans and
 
 Analyses and member pages live **inside** their owning project/area folder. `schema.md` is authoritative on all conventions.
 
-**The agent owns everything in `wiki/`. The agent never modifies `capture/`.**
+**The agent maintains everything in `wiki/` and never modifies `capture/`. All of it belongs to the user.**
+
+**The capture directory is `capture/` by default.** `schema.md`'s `## Capture` section may rename it or point at a folder the user already saves into (a web clipper's target, for example). Wherever it lives, the operation is still Capture and the items are still captures — throughout this document, `capture/` means the configured capture directory. If it lies outside the wiki root, git in the wiki root won't track it; cover it with rclone or its own backup. And if it points at a folder inside another git repository (an already-tracked Obsidian vault, say), leave that repository's ignore rules alone — they aren't this wiki's to configure.
 
 `capture/` holds two kinds of content:
 - **Quick captures** — timestamped notes/links/quotes dropped in without processing, named `<timestamp>-<slug>.md`
@@ -81,6 +83,8 @@ When creating a fresh wiki:
 ```bash
 mkdir -p <root>/capture/assets <root>/wiki
 ```
+
+If the user wants captures somewhere else — or already has a folder a clipper saves into — skip creating `capture/` and record the location in `schema.md`'s `## Capture` section instead.
 
 Create `<root>/schema.md` using the following template, filled in with the user's domain details:
 
@@ -133,6 +137,13 @@ Express composes base + named (named wins on conflicts; "do not" rules accumulat
 Applies to Express outputs and outward-facing filed answers only — never internal pages.
 -->
 
+## Capture
+<!-- omit this section if the default capture/ is used -->
+Directory: capture/
+<!-- Rename it or point at a folder you already save into (e.g. your web clipper's
+     target). If it lives outside the wiki root, git won't track it — back it up
+     separately (see ## Backup). -->
+
 ## Backup
 <!-- omit this section if no backup is configured -->
 Pattern: <binaries-only | full-repo | rclone-only>
@@ -168,9 +179,9 @@ Domain: <domain>
 
 Create `<root>/wiki/overview.md` as a brief placeholder.
 
-Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to enable git version control for this wiki? It gives you per-file rollback and full history."* If yes, read `setup-git.md` and follow its setup steps.
+Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to track this wiki with git version control? It keeps a full history, so you can see what changed and restore any earlier version of any page."* If yes, read `setup-git.md` and follow its setup steps.
 
-Then ask about cloud backup: *"Do you want to back up this wiki to cloud storage via rclone? Options: (1) binaries only — rclone covers `capture/`, git covers `wiki/`, push `wiki/` to a remote like GitHub; (2) full repo — rclone syncs everything including `.git/`, no GitHub needed (good for single-user wikis); (3) rclone only — no git, rclone is your only backup. Or skip for now."*
+Then ask about cloud backup: *"Do you want to back up this wiki to cloud storage via rclone? Options: (1) binaries only — rclone backs up your raw capture files, and git covers the wiki pages (pushed to a remote like GitHub); (2) full repo — rclone syncs everything including git history, no GitHub needed (good for single-user wikis); (3) rclone only — no git, rclone is your only backup. Or skip for now."*
 
 If the user chooses a pattern, read `setup-rclone.md`, ask for the rclone remote name and destination path, then add a `## Backup` section to `schema.md`:
 ```
@@ -178,7 +189,7 @@ If the user chooses a pattern, read `setup-rclone.md`, ask for the rclone remote
 Pattern: <binaries-only | full-repo | rclone-only>
 Command: rclone sync <source-path> <remote>:<destination-path>
 ```
-For **binaries-only**, `<source-path>` is `<wiki-root>/capture/`. For **full-repo** and **rclone-only**, it is `<wiki-root>/`. If the user skips backup setup, omit the `## Backup` section entirely.
+For **binaries-only**, `<source-path>` is the capture directory (default `<wiki-root>/capture/`). For **full-repo** and **rclone-only**, it is `<wiki-root>/`. If the user skips backup setup, omit the `## Backup` section entirely.
 
 If git was set up **and** an rclone pattern was chosen, also create the post-commit hook (see `setup-rclone.md` for the hook script). Skip this step for the **rclone-only** pattern (no git, no hook).
 
@@ -325,6 +336,9 @@ Triggered by: "write a draft about X", "create a report on Y", "I need to make a
 decision about Z", "turn my wiki into something I can share/publish/send". The key
 signal is a finished artifact for an audience or purpose outside the wiki. **Not**
 triggered by "summarize what I know about X" — that's a Query.
+
+Every Express output is a starting draft: the agent assembles it from the wiki;
+the user reviews, finishes, and owns it.
 
 **Flow:**
 
@@ -705,10 +719,9 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 ## Behavioral principles
 
 - **The agent never modifies `capture/`**. That's the source of truth — both quick captures and source documents live there, immutable.
-- **Capture is frictionless.** Inbox items require zero processing — save first, think later.
+- **Capture is frictionless.** New captures require zero processing — save first, think later.
 - **Be thorough on cross-references.** A page that isn't linked to is nearly invisible.
-- **Contradictions are first-class citizens.** Don't silently pick a side — mark them
-  and let the user decide.
+- **Never silently pick a side.** Mark contradictions and let the user decide.
 - **PARA reflects the user's current life, not the content.** The same resource may serve multiple efforts — record those dependencies as forward links on each project/area page. When in doubt about which efforts a resource serves, ask.
 - **Distillation is lossy by design.** Optimize for resonance, not completeness — keep what the user would want to rediscover six months from now.
 - **Distill before Express.** If asked to express from pages at distill_level 0, suggest
@@ -716,6 +729,8 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 - **Voice is for outputs only.** Apply the user's writing-style profile to Express artifacts
   (and outward-facing filed answers) — never to internal entity/concept/source pages, which
   stay in a neutral reference voice.
+- **Express produces starting drafts.** The user finishes, approves, and owns every
+  outward-facing artifact — the agent assembles; the judgment stays the user's.
 - **File good answers and outputs back.** Insights and drafts shouldn't disappear into
   chat history — they're wiki pages now.
 - **Keep the index lean.** One-line summaries only. Detail lives in the pages.

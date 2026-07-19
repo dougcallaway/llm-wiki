@@ -2,6 +2,8 @@
 
 rclone syncs wiki files to cloud storage. It supports 70+ backends: OneDrive, Google Drive, S3, Backblaze B2, Dropbox, and many more.
 
+`capture/` below means the wiki's capture directory — if `schema.md`'s `## Capture` section names a different folder, substitute it.
+
 Three patterns, pick one:
 
 | Pattern | What rclone syncs | When to choose |
@@ -38,7 +40,7 @@ rclone lsd backup:
 
 **Sync — complement to git, binaries only:**
 
-Add `capture/` to `.gitignore` so the binaries stay out of the git repo:
+Add `capture/` to `.gitignore` so the binaries stay out of the git repo. If `schema.md`'s `## Capture` section names a different folder, gitignore that name instead — and if the capture directory lives outside the wiki root (or inside another git repository), skip this step; there is nothing to ignore here:
 
 ```
 # Raw capture files — backed up via rclone, not git

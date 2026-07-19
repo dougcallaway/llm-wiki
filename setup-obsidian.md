@@ -9,7 +9,9 @@ A browser extension that converts web articles to markdown with a single click.
 
 **Setup:** Install from [obsidian.md/clipper](https://obsidian.md/clipper). Point it
 at the `capture/` directory as the save location. Clipped articles land there as
-markdown files, ready to organize — no copy-pasting required.
+markdown files, ready to organize — no copy-pasting required. (If you already clip
+to another folder, point `schema.md`'s `## Capture` section at that folder instead
+of moving your clips.)
 
 **The agent's role:** When the user says "I clipped something", check `capture/` for new
 files and offer to organize them.
