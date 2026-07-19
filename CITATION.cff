@@ -1,0 +1,11 @@
+cff-version: 1.2.0
+message: "If you reference this skill, please cite it as below."
+title: "wikismith"
+type: software
+authors:
+  - family-names: Callaway
+    given-names: Doug
+repository-code: "https://github.com/dougcallaway/wikismith"
+license: MIT
+version: 1.0.0
+date-released: "2026-07-19"

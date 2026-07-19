@@ -1,6 +1,6 @@
 # Optional tooling: rclone
 
-rclone syncs wiki files to cloud storage. It supports 70+ backends: OneDrive, Google Drive, S3, Backblaze B2, Dropbox, and many more.
+rclone syncs wiki files to cloud storage. It supports [70+ backends](https://rclone.org/overview/): OneDrive, Google Drive, S3, Backblaze B2, Dropbox, and many more.
 
 `capture/` below means the wiki's capture directory — if `schema.md`'s `## Capture` section names a different folder, substitute it.
 

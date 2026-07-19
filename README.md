@@ -8,7 +8,7 @@ It's an [Agent Skill](https://code.claude.com/docs/en/skills) (the open `SKILL.m
 
 ## What you need
 
-- **An AI coding agent** — a program that runs on your own computer, talks with you in plain English, and can read and write your files. [Claude Code](https://claude.com/claude-code) is the tested one; note it requires a paid Claude plan. Codex, Gemini CLI, and Cursor should work too.
+- **An AI coding agent** — a program that runs on your own computer, talks with you in plain English, and can read and write your files. [Claude Code](https://claude.com/claude-code) is the tested one; note it [requires a paid Claude plan](https://code.claude.com/docs/en/setup). Codex, Gemini CLI, and Cursor should work too.
 - **A folder.** Your whole wiki is ordinary files on your machine — nothing else to sign up for.
 - **One setup session.** If you've never used a terminal, installing the agent is the single technical step; everything after that happens by asking in plain English. [Obsidian](https://obsidian.md) (free) is optional but a lovely way to view what your agent builds.
 
@@ -23,9 +23,9 @@ It's an [Agent Skill](https://code.claude.com/docs/en/skills) (the open `SKILL.m
 
 Two ideas do the work.
 
-**Karpathy's LLM Wiki pattern.** Rather than re-deriving answers from raw documents every time (the usual "retrieval" approach), your agent builds and maintains a *persistent wiki*: structured, interlinked markdown pages that improve with every source. Integrating a source updates the pages it touches, flags contradictions, and adds cross-references.
+**[Karpathy's LLM Wiki pattern.](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)** Rather than re-deriving answers from raw documents every time (the usual "retrieval" approach), your agent builds and maintains a *persistent wiki*: structured, interlinked markdown pages that improve with every source. Integrating a source updates the pages it touches, flags contradictions, and adds cross-references.
 
-**Forte's CODE method** maps onto four operations:
+**[Forte's CODE method](https://fortelabs.com/blog/the-4-levels-of-personal-knowledge-management/)** maps onto four operations:
 
 | CODE step | Operation | What your agent does |
 |-----------|-----------|-----------------|
@@ -76,7 +76,7 @@ git clone https://github.com/dougcallaway/wikismith ~/.claude/skills/wikismith
 
 The wiki is just markdown files and folders, so it opens in Obsidian, VS Code, or any markdown editor. (In Obsidian: **Open folder as vault** on your wiki folder, and you're browsing it.) Two conventions keep it portable and future-proof:
 
-- **Use relative markdown links** — `[Concept](../resources/concept.md)` — as the default for connections between pages. They resolve the same in every tool. `[[wikilinks]]` work if you view the wiki in Obsidian, but they aren't part of standard Markdown, so prefer relative links for anything you want other tools to read as a connection.
+- **Use relative markdown links** — `[Concept](../resources/concept.md)` — as the default for connections between pages. They resolve the same in every tool. `[[wikilinks]]` work if you view the wiki in Obsidian, but they aren't part of [standard Markdown](https://commonmark.org/), so prefer relative links for anything you want other tools to read as a connection.
 - **Folders are the hierarchy, and a page's path is its identity.** Renaming or moving a page means updating the links that point to it. The `lint` operation catches links left dangling.
 
 ### Works with Verdondo
