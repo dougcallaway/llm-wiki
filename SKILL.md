@@ -179,7 +179,7 @@ Domain: <domain>
 
 Create `<root>/wiki/overview.md` as a brief placeholder.
 
-Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to track this wiki with git version control? It keeps a full history, so you can see what changed and restore any earlier version of any page."* If yes, read `setup-git.md` and follow its setup steps.
+Finally, check whether the wiki root is already inside a parent git repo. **If it is, do not offer git setup** — a nested repo is rarely intended. **If it isn't**, ask the user: *"Do you want to track this wiki with git version control? It keeps a full history, so you can see what changed and restore any earlier version of any page. If unsure, say yes — it's invisible day to day, and it gives you undo."* If yes, read `setup-git.md` and follow its setup steps.
 
 Then ask about cloud backup: *"Do you want to back up this wiki to cloud storage via rclone? Options: (1) binaries only — rclone backs up your raw capture files, and git covers the wiki pages (pushed to a remote like GitHub); (2) full repo — rclone syncs everything including git history, no GitHub needed (good for single-user wikis); (3) rclone only — no git, rclone is your only backup. Or skip for now."*
 
@@ -709,6 +709,7 @@ Setup guides live in separate files — load the relevant one on demand, not on 
 | `setup-obsidian.md` | User mentions Obsidian, web clipping, or asks about the clipper workflow |
 
 **Operational reminders (no file load needed):**
+- If the user asks to update this skill ("update wikismith", "get the latest version"): run `git -C <skill-directory> pull` — the skill directory is wherever this `SKILL.md` lives — then summarize what changed from the new commits. If the skill was installed without git (no `.git` there), point the user at the repo's Install section instead.
 - If `.git` exists: suggest a commit after organize, distill, express, and calibrate — wait for confirmation
 - If `.git/hooks/post-commit` exists: skip rclone sync reminders — the hook fires automatically
 - If no hook but `schema.md` has a `## Backup` section: remind the user to sync after each operation using the exact command from `schema.md`

@@ -6,6 +6,12 @@ You drop in articles, notes, and links. Your agent reads them, files the knowled
 
 It's an [Agent Skill](https://code.claude.com/docs/en/skills) (the open `SKILL.md` standard), so it works with any AI coding agent that can read and write files in a folder. Claude Code is the tested reference; Codex, Gemini CLI, Cursor, and other Agent Skills–compatible tools should work too (reports welcome — see [Compatibility](#compatibility)).
 
+## What you need
+
+- **An AI coding agent** — a program that runs on your own computer, talks with you in plain English, and can read and write your files. [Claude Code](https://claude.com/claude-code) is the tested one; note it requires a paid Claude plan. Codex, Gemini CLI, and Cursor should work too.
+- **A folder.** Your whole wiki is ordinary files on your machine — nothing else to sign up for.
+- **One setup session.** If you've never used a terminal, installing the agent is the single technical step; everything after that happens by asking in plain English. [Obsidian](https://obsidian.md) (free) is optional but a lovely way to view what your agent builds.
+
 ## What you get
 
 - **One knowledge base that compounds.** Every source you add updates existing pages, adds cross-references, and gets logged. The wiki is worth more after the tenth source than the sum of ten separate notes.
@@ -50,26 +56,37 @@ Each wiki has a `schema.md` at its root that the agent reads at the start of eve
 
 ## Install
 
-**Claude Code** — clone into your personal skills directory:
+**The easy way (any agent):** once your agent is installed, paste this into it:
+
+> Install the wikismith skill by cloning https://github.com/dougcallaway/wikismith into my skills folder, then confirm it loaded.
+
+The agent performs the technical steps itself. (For Claude Code the skills folder is `~/.claude/skills/`, and the skill is then available as `/wikismith` in any session.)
+
+**The terminal way (Claude Code):**
 
 ```bash
 git clone https://github.com/dougcallaway/wikismith ~/.claude/skills/wikismith
 ```
 
-The skill is then available as `/wikismith` in any Claude Code session.
-
 **Other agents** — Codex, Gemini CLI, Cursor, and other tools that support the `SKILL.md` standard load skills from their own skills directory. Clone this repo there (check your tool's skills documentation for the exact path). Everything the skill does is plain file reading and writing, so no Claude-specific features are required.
+
+**No git?** The green **Code → Download ZIP** button on this page works too — unzip into your skills folder. The clone route is still better where possible: it lets your agent [update the skill for you](#updating).
 
 ## Compatibility
 
-The wiki is just markdown files and folders, so it opens in Obsidian, VS Code, or any markdown editor. Two conventions keep it portable and future-proof:
+The wiki is just markdown files and folders, so it opens in Obsidian, VS Code, or any markdown editor. (In Obsidian: **Open folder as vault** on your wiki folder, and you're browsing it.) Two conventions keep it portable and future-proof:
 
 - **Use relative markdown links** — `[Concept](../resources/concept.md)` — as the default for connections between pages. They resolve the same in every tool. `[[wikilinks]]` work if you view the wiki in Obsidian, but they aren't part of standard Markdown, so prefer relative links for anything you want other tools to read as a connection.
 - **Folders are the hierarchy, and a page's path is its identity.** Renaming or moving a page means updating the links that point to it. The `lint` operation catches links left dangling.
 
 ### Works with Verdondo
 
-wikismith's page format is the wiki format of **[Verdondo](https://github.com/verdondo)**, a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard. A wiki you build with this skill — relative-linked markdown pages with frontmatter — is meant to be readable by Verdondo as it matures. Verdondo keeps its own view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
+A wiki you build with this skill is made of what **[Verdondo](https://github.com/verdondo)** — a visual tool in development that shows a folder of pages like these as a map you can view and edit as naturally as drawing on a whiteboard — is built to read: plain markdown pages with frontmatter, connected by relative links, organized in folders. Each wiki defines its own page schema (yours lives in `schema.md`), and Verdondo reads the format without caring which schema produced it — verified against Verdondo's wiki backend. Verdondo keeps its view data in a `.verdondo/` folder and `.canvas` sidecar files alongside your pages; the skill leaves those alone, and so should you.
+
+## Getting help
+
+- **Questions and ideas** — [Discussions](https://github.com/dougcallaway/wikismith/discussions). "How do I…" belongs here, and non-technical questions are welcome — this skill exists for people who'd rather not think about the technical layer.
+- **Something broke** — [open an issue](https://github.com/dougcallaway/wikismith/issues/new/choose). Tip: ask your agent to write the report with you — it was there when the problem happened, and the template tells it what to include.
 
 ## Credits
 
@@ -84,16 +101,22 @@ Built on the ideas of others, credited here in [TASL format](https://wiki.creati
 
 MIT — see [LICENSE](LICENSE). Use it, fork it, adapt it. Attribution is appreciated but not required.
 
-## Version management
+## What "1.0" promises
 
-Pin to a released version:
+The things your wiki depends on are stable: the page format (plain markdown, frontmatter, relative links, folders) and the rule that `capture/` is never edited. New operations and refinements arrive in minor versions. Anything that would change how existing wikis are read gets a major version — and a migration the agent performs for you; you never restructure your wiki by hand (today's example: wikis whose schema file still has its old `CLAUDE.md` name keep working and are offered a rename).
 
-```bash
-git -C ~/.claude/skills/wikismith checkout v0.2.0
-```
+## Updating
 
-Update to the latest:
+Ask your agent — *"update my wikismith skill"* — or run it yourself:
 
 ```bash
 git -C ~/.claude/skills/wikismith checkout main && git -C ~/.claude/skills/wikismith pull
 ```
+
+Prefer changes only when you choose them? Pin to a released version:
+
+```bash
+git -C ~/.claude/skills/wikismith checkout v1.0.0
+```
+
+New releases appear on the [releases page](https://github.com/dougcallaway/wikismith/releases) with plain-language notes. To hear about them by email: **Watch → Custom → Releases** at the top of this page (needs a free GitHub account).
