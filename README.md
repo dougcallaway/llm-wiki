@@ -58,7 +58,7 @@ Each wiki has a `schema.md` at its root that the agent reads at the start of eve
 
 **The easy way (any agent):** once your agent is installed, paste this into it:
 
-> Install the wikismith skill by cloning https://github.com/dougcallaway/wikismith into my skills folder, then confirm it loaded.
+> Install the wikismith skill by cloning https://github.com/dougcallaway/wikismith into my skills folder, then confirm it loaded and ask me what I want to build.
 
 The agent performs the technical steps itself. (For Claude Code the skills folder is `~/.claude/skills/`, and the skill is then available as `/wikismith` in any session.)
 
@@ -71,6 +71,14 @@ git clone https://github.com/dougcallaway/wikismith ~/.claude/skills/wikismith
 **Other agents** — Codex, Gemini CLI, Cursor, and other tools that support the `SKILL.md` standard load skills from their own skills directory. Clone this repo there (check your tool's skills documentation for the exact path). Everything the skill does is plain file reading and writing, so no Claude-specific features are required.
 
 **No git?** The green **Code → Download ZIP** button on this page works too — unzip into your skills folder. The clone route is still better where possible: it lets your agent [update the skill for you](#updating).
+
+## Your first session
+
+The skill orients itself every time you invoke it: if it finds a wiki it continues there, and if it doesn't it offers to set one up. After installing, you just say what you want — for example:
+
+- **Starting fresh** — *"Set up a new wiki for [your topic]."* The agent asks what the wiki is for and where it should live, then creates the folders and a starter [`schema.md`](#schemamd--your-wikis-schema) you refine together over time.
+- **Starting from notes you already have** — *"I have notes in [folder] — build a wiki from them."* Tell the agent to treat that folder as your capture location: it builds wiki pages from what's there, and because captures are never edited, your original notes stay exactly as they are.
+- **Every session after that** — drop new things into `capture/`, then ask in plain English: *"organize my captures"*, *"what do I know about [topic]?"*, *"draft a report on [idea]"*.
 
 ## Compatibility
 
